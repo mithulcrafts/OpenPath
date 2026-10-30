@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { Page, BrowserContext } from 'playwright';
-import { isPublicIp, parseTarget, resolvePublicTarget } from '../server/network.js';
+import { isPublicIp, parseTarget, resolvePublicTarget, safeFetchText } from '../server/network.js';
 import { inspectPages, parseHtml } from '../server/checks.js';
 import { ActionSchema, readableModelError } from '../server/model.js';
 import { demoDecide, evaluateAssertions, validateAction } from '../server/runner.js';
@@ -27,6 +27,12 @@ test('missing optional integration standards do not fail compatibility checks',(
   assert.equal(finding.kind,'recommendation');assert.equal(finding.severity,'info');
   assert.match(finding.observation,/within this scan/);
   assert.equal(report.checks.find(c=>c.id==='structured-data')!.status,'not_tested');
+});
+
+test('redirect fetches enforce the configured target allowlist before network access',async()=>{
+  const previous=process.env.AUDIT_ALLOWED_HOSTS;process.env.AUDIT_ALLOWED_HOSTS='allowed.example';
+  try{await assert.rejects(safeFetchText('https://outside.invalid/redirected',1),/allowed target list/);}
+  finally{if(previous===undefined)delete process.env.AUDIT_ALLOWED_HOSTS;else process.env.AUDIT_ALLOWED_HOSTS=previous;}
 });
 
 test('rendering gap affects HTML readers, not every browser agent',()=>{

@@ -15,10 +15,12 @@ export function config() {
   return {
     port: Number(env('PORT', '4173')),
     host: env('HOST', '127.0.0.1'),
-    key: env('NEBIUS_API_KEY'),
+    aiEnabled: env('OPENPATH_AI_ENABLED', 'true') !== 'false',
+    key: env('OPENPATH_AI_ENABLED', 'true') === 'false' ? '' : env('NEBIUS_API_KEY'),
     baseURL: env('NEBIUS_BASE_URL', 'https://api.tokenfactory.nebius.com/v1/'),
     model: env('NEBIUS_MODEL', 'nvidia/Nemotron-3_5-Lightning'),
     accessToken: env('APP_ACCESS_TOKEN'),
+    trustProxy: env('TRUST_PROXY'),
     allowedHosts: env('AUDIT_ALLOWED_HOSTS').split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
     maxPages: Math.min(4, Math.max(1, Number(env('MAX_AUDIT_PAGES', '4')) || 4)),
     modelTimeout: Math.min(60000, Math.max(5000, Number(env('MODEL_TIMEOUT_MS', '30000')) || 30000)),

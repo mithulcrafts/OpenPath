@@ -34,7 +34,7 @@ Built for the Nebius × NVIDIA Global AI Hackathon. NVIDIA Nemotron on Nebius To
 - [Backend setup, verification and deployment runbook](docs/BACKEND_RUNBOOK.md)
 - [Integration status and release checklist](docs/INTEGRATION_STATUS.md)
 
-The backend workstream is on `mithul/backend`, with tested milestones integrated into `main`. Rohinth's frontend, storefront and scope/trial improvements are integrated alongside the API, shared types, audit checks, evidence storage, fix export and bounded browser runner. The full production build, 26 unit/API/model-protocol tests and eight real-Chromium integration tests passed on 30 October 2026. Offline browser checks use declared scripted decisions; live NVIDIA calls require activated Nebius access, a configured key and verification. Actual SDK calls record model/provider metadata, latency and reported tokens. Run `npm run verify:live` after configuring access to capture genuine connection, review and paired-trial results. Deployment and live NVIDIA verification still need to be completed on the selected host. Keep the hosted deployment available through judging.
+The backend workstream is on `mithul/backend`, with tested milestones integrated into `main`. Rohinth's frontend, storefront and scope/trial improvements are integrated alongside the audit engine, evidence storage, fix export and bounded browser runner. The full production build, 36 unit/API/model-protocol tests and nine real-Chromium tests pass. `npm run verify:offline` checks the complete production flow with AI explicitly disabled, including login, both storefront audits/trials, comparisons, downloads and restart persistence. Live NVIDIA calls require activated Nebius access and a key; `npm run verify:live` captures genuine connection, review and paired-trial results. Public deployment and live model verification remain unfinished. Keep the eventual hosted deployment available through judging.
 
 ## Backend setup
 
@@ -56,9 +56,10 @@ npm run typecheck
 npm test
 npm run build:server
 npm run test:browser
+npm run verify:offline
 ```
 
-`npm run build` builds the combined frontend and backend. Never commit `.env`. Set a strong `APP_ACCESS_TOKEN` before binding to a public interface; the frontend's installation-login flow remains on the integration checklist.
+`npm run build` builds the combined frontend and backend; run it before production verification. Never commit `.env`. Set a strong `APP_ACCESS_TOKEN` before binding publicly; the server presents a working installation-login screen. For an HTTPS reverse proxy, configure its exact trusted addresses in `TRUST_PROXY`. See the runbook for hosting and offline-mode settings.
 
 ## Collaboration
 

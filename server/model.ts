@@ -25,6 +25,7 @@ export function modelEndpoint(settings: ModelSettings) {
 class ModelOutputError extends Error {}
 export function connectionStatus(): { ai: Health['ai']; aiMessage: string } {
   const settings = config();
+  if (!settings.aiEnabled) return { ai: 'unconfigured', aiMessage: 'AI calls are disabled by OPENPATH_AI_ENABLED=false. Deterministic audits and the configured scripted demo remain available.' };
   if (!settings.key) return { ai: 'unconfigured', aiMessage: 'Add NEBIUS_API_KEY to the local .env file to enable NVIDIA analysis and task runs.' };
   if (connection?.signature === signature(settings)) return { ai: connection.status, aiMessage: connection.message };
   return { ai: 'configured', aiMessage: 'A key is configured. An inference call has not yet been verified.' };

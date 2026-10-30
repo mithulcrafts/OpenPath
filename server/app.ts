@@ -7,13 +7,15 @@ import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 import { z } from 'zod';
 import { config, demoOrigin, isDemoUrl, ROOT } from './config.js';
-import { validateTarget, TargetError } from './network.js';
+import { parseTarget, validateTarget, TargetError } from './network.js';
 import { artifactDir, getAudit, getRun, jobs, listAudits, listRuns, newId, saveAudit, saveRun } from './store.js';
 import { connectionStatus, readableModelError, verifyConnection } from './model.js';
 import { executeAudit } from './audit.js';
 import { executeRun } from './runner.js';
 import { exportFixKit } from './report.js';
 import { mountDemoApi } from './demo-api.js';
+import { compareAudits, compareRuns, runSettingsMismatches } from './comparison.js';
+import { accessPage } from './access.js';
 import type { Assertion, Audit, Health, TaskRun } from '../shared/types.js';
 
 const compareSecret=(a:string,b:string)=>timingSafeEqual(createHash('sha256').update(a).digest(),createHash('sha256').update(b).digest());
@@ -39,6 +41,7 @@ export interface AppOptions {
 }
 export function createApp(options:AppOptions={}) {
   const app=express();app.disable('x-powered-by');
+  if(config().trustProxy)app.set('trust proxy',config().trustProxy.split(',').map(value=>value.trim()).filter(Boolean));
   app.use(express.json({limit:'32kb'}));
   app.use((req,res,next)=>{
     res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','same-origin');res.setHeader('X-Frame-Options','SAMEORIGIN');
@@ -49,6 +52,8 @@ export function createApp(options:AppOptions={}) {
     }
     next();
   });
+  app.get('/login',(req,res)=>{if(authorised(req)){res.redirect('/');return;}res.setHeader('Cache-Control','no-store');res.type('html').send(accessPage);});
+  app.get('/',(req,res,next)=>{if(!authorised(req)){res.redirect('/login');return;}next();});
   const rates=new Map<string,{start:number;count:number}>();
   app.use('/api',(req,res,next)=>{
     if(req.method!=='POST'){next();return;}
@@ -58,7 +63,7 @@ export function createApp(options:AppOptions={}) {
     if(rate.count>20){res.status(429).json({error:'Too many requests. Please wait a minute.'});return;}next();
   });
   app.get('/api/health',(req,res)=>{
-    const c=config();const health:Health={version:'0.1.0',model:c.model,...connectionStatus(),browserInstalled:existsSync(chromium.executablePath()),demoUrl:`${demoOrigin()}/demo/broken/`,fixedDemoUrl:`${demoOrigin()}/demo/fixed/`,demoAvailable:!!options.demoRenderer||existsSync(demoPath()),activeJobs:jobs.active,queuedJobs:jobs.pending,needsAuth:!authorised(req)};
+    const c=config();const health:Health={version:'0.1.0',model:c.model,...connectionStatus(),aiEnabled:c.aiEnabled,trialMode:c.key?'live':c.demoMode?'scripted-demo':'unavailable',browserInstalled:existsSync(chromium.executablePath()),demoUrl:`${demoOrigin()}/demo/broken/`,fixedDemoUrl:`${demoOrigin()}/demo/fixed/`,demoAvailable:!!options.demoRenderer||existsSync(demoPath()),activeJobs:jobs.active,queuedJobs:jobs.pending,needsAuth:!authorised(req)};
     res.json(health);
   });
   app.post('/api/auth',(req,res)=>{
@@ -75,7 +80,12 @@ export function createApp(options:AppOptions={}) {
   app.post('/api/audits',async(req,res)=>{
     const body=auditSchema.parse(req.body);
     if(jobs.pending>=12){res.status(429).json({error:'The audit queue is full. Retry shortly.'});return;}
-    const target=await validateTarget(body.url);
+    // Accept this installation's visible demo URL behind localhost or an HTTPS
+    // proxy, then use the exact server-local sandbox origin for the audit.
+    let submitted=body.url;
+    const entered=parseTarget(body.url);
+    if(entered.origin===`${req.protocol}://${req.get('host')}`&&/^\/demo\/(broken|fixed)(\/|$)/.test(entered.pathname))submitted=demoOrigin()+entered.pathname+entered.search;
+    const target=await validateTarget(submitted);
     if(body.compareWith&&!await getAudit(body.compareWith)){res.status(404).json({error:'The comparison audit was not found.'});return;}
     if(isDemoUrl(target.href)&&!options.demoRenderer&&!existsSync(demoPath())){res.status(409).json({error:'The demo-site pages are not integrated yet. Inspect a public website, or add demo-site/pages.ts.'});return;}
     const audit:Audit={id:newId(),url:target.href,domain:target.host,status:'queued',createdAt:new Date().toISOString(),progress:0,events:[{time:new Date().toISOString(),message:'Website inspection queued.'}],pages:[],evidence:[],findings:[],checks:[],summary:'',model:{mode:'pending',name:config().model,note:''},isDemo:isDemoUrl(target.href),compareWith:body.compareWith,limitations:[
@@ -89,13 +99,27 @@ export function createApp(options:AppOptions={}) {
     await saveAudit(audit);jobs.add(()=>executeAudit(audit));res.status(202).json({id:audit.id});
   });
   app.get('/api/audits/:id',async(req,res)=>{const audit=await getAudit(String(req.params.id));if(!audit){res.status(404).json({error:'Audit not found.'});return;}res.json(audit);});
+  app.get('/api/audits/:id/comparison',async(req,res)=>{
+    const audit=await getAudit(String(req.params.id));const before=audit?.compareWith ? await getAudit(audit.compareWith) : null;
+    if(!audit||!before){res.status(404).json({error:'The audit or its linked comparison was not found.'});return;}
+    if(audit.status!=='complete'||before.status!=='complete'){res.status(409).json({error:'Complete both audits before comparing them.'});return;}
+    res.json(compareAudits(before,audit));
+  });
   app.get('/api/audits/:id/fix-kit',async(req,res)=>{
     const audit=await getAudit(String(req.params.id));if(!audit){res.status(404).json({error:'Audit not found.'});return;}
     if(!['complete','failed'].includes(audit.status)){res.status(409).json({error:'Wait for the audit to finish before exporting.'});return;}
-    res.type('text/markdown; charset=utf-8').attachment(`openpath-${audit.id.slice(0,8)}-fix-kit.md`).send(exportFixKit(audit,await listRuns(audit.id)));
+    const before=audit.compareWith ? await getAudit(audit.compareWith) : null;
+    const comparison=before?.status==='complete'&&audit.status==='complete' ? compareAudits(before,audit) : undefined;
+    res.type('text/markdown; charset=utf-8').attachment(`openpath-${audit.id.slice(0,8)}-fix-kit.md`).send(exportFixKit(audit,await listRuns(audit.id),comparison));
   });
   app.get('/api/runs',async(req,res)=>res.json({runs:await listRuns(typeof req.query.auditId==='string'?req.query.auditId:undefined)}));
   app.get('/api/runs/:id',async(req,res)=>{const run=await getRun(String(req.params.id));if(!run){res.status(404).json({error:'Run not found.'});return;}res.json(run);});
+  app.get('/api/runs/:id/comparison',async(req,res)=>{
+    const run=await getRun(String(req.params.id));const before=run?.compareWith ? await getRun(run.compareWith) : null;
+    if(!run||!before){res.status(404).json({error:'The attempt or its linked comparison was not found.'});return;}
+    if(run.status!=='complete'||before.status!=='complete'){res.status(409).json({error:'Complete both attempts before comparing them.'});return;}
+    res.json(compareRuns(before,run));
+  });
   app.post('/api/runs',async(req,res)=>{
     const body=runSchema.parse(req.body);const audit=await getAudit(body.auditId);
     if(!audit){res.status(404).json({error:'Audit not found.'});return;}
@@ -114,7 +138,7 @@ export function createApp(options:AppOptions={}) {
     if(body.compareWith){
       const before=await getRun(body.compareWith);
       if(!before){res.status(404).json({error:'The comparison run was not found.'});return;}
-      if(before.goal!==goal||before.model!==model||before.promptVersion!==promptVersion||before.profile!=='rendered-dom'||before.maxSteps!==12||before.maxDurationMs!==120000||JSON.stringify(before.assertions)!==JSON.stringify(assertions)){res.status(400).json({error:'A paired comparison must use the same goal, model, runner settings and success conditions.'});return;}
+      if(runSettingsMismatches(before,{goal,model,promptVersion,profile:'rendered-dom',maxSteps:12,maxDurationMs:120000,assertions}).length){res.status(400).json({error:'A paired comparison must use the same goal, model, runner settings and success conditions.'});return;}
     }
     const run:TaskRun={id:newId(),auditId:audit.id,startUrl:audit.url,goal,assertions,status:'queued',createdAt:new Date().toISOString(),steps:[],checks:[],explanation:scripted?'Scripted demo only; no NVIDIA model will be called.':'',model,profile:'rendered-dom',promptVersion,maxSteps:12,maxDurationMs:120000,compareWith:body.compareWith};
     await saveRun(run);jobs.add(()=>executeRun(run));res.status(202).json({id:run.id});

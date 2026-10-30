@@ -39,11 +39,16 @@ export async function resolvePublicTarget(url: URL, allowDemo = false): Promise<
   return results.find(r => r.family === 4) || results[0];
 }
 
+function checkAllowedHost(url: URL) {
+  if (isDemoUrl(url.href)) return;
+  const allowed = config().allowedHosts;
+  if (allowed.length && !allowed.includes(url.hostname.toLowerCase())) throw new TargetError('This hostname is not in this installation’s allowed target list.');
+}
+
 export async function validateTarget(input: string): Promise<URL> {
   const url = parseTarget(input);
   if (isDemoUrl(url.href)) return url;
-  const allowed = config().allowedHosts;
-  if (allowed.length && !allowed.includes(url.hostname.toLowerCase())) throw new TargetError('This hostname is not in this installation’s allowed target list.');
+  checkAllowedHost(url);
   await resolvePublicTarget(url);
   return url;
 }
@@ -51,6 +56,7 @@ export async function validateTarget(input: string): Promise<URL> {
 export async function safeFetchText(input: string, hops = 0): Promise<{ url: string; status: number; text: string; contentType: string }> {
   if (hops > 5) throw new TargetError('Too many redirects.');
   const url = parseTarget(input);
+  checkAllowedHost(url);
   const resolved = await resolvePublicTarget(url, true);
   const result = await new Promise<{ status: number; text: string; location?: string; contentType: string }>((resolve, reject) => {
     const transport = url.protocol === 'https:' ? https : http;

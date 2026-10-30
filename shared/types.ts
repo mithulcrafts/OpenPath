@@ -168,6 +168,8 @@ export interface Health {
   model: string;
   ai: 'unconfigured' | 'configured' | 'verified' | 'error';
   aiMessage: string;
+  aiEnabled: boolean;
+  trialMode: 'live' | 'scripted-demo' | 'unavailable';
   browserInstalled: boolean;
   demoUrl: string;
   fixedDemoUrl: string;
@@ -181,4 +183,31 @@ export interface AuditSummary {
   id: string; url: string; domain: string; status: Audit['status'];
   createdAt: string; completedAt?: string; pageCount: number; findingCount: number;
   highCount: number; isDemo: boolean; modelMode: Audit['model']['mode'];
+}
+
+export interface AuditComparison {
+  beforeId: string;
+  afterId: string;
+  scopeMatched: boolean;
+  beforePages: string[];
+  afterPages: string[];
+  counts: { before: Record<CheckStatus, number>; after: Record<CheckStatus, number> };
+  changes: {
+    id: string; name: string; category: Category;
+    before?: CheckStatus; after?: CheckStatus;
+    transition: 'improved' | 'regressed' | 'unchanged' | 'unverified';
+    beforeEvidenceIds: string[]; afterEvidenceIds: string[];
+  }[];
+  limitations: string[];
+}
+
+export interface RunComparison {
+  beforeId: string;
+  afterId: string;
+  comparable: boolean;
+  reasons: string[];
+  transition: 'improved' | 'regressed' | 'unchanged' | 'changed' | 'unverified';
+  before: { outcome?: Outcome; checks: AssertionResult[]; steps: number; durationMs?: number; model: string };
+  after: { outcome?: Outcome; checks: AssertionResult[]; steps: number; durationMs?: number; model: string };
+  limitations: string[];
 }

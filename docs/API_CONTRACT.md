@@ -21,6 +21,8 @@ This is the implemented backend contract. Shared TypeScript types are published 
   "model": "configured NVIDIA model identifier",
   "ai": "unconfigured",
   "aiMessage": "A readable connection status.",
+  "aiEnabled": true,
+  "trialMode": "scripted-demo",
   "browserInstalled": true,
   "demoUrl": "server-provided broken-demo URL",
   "fixedDemoUrl": "server-provided fixed-demo URL",
@@ -33,11 +35,15 @@ This is the implemented backend contract. Shared TypeScript types are published 
 
 `ai` is one of `unconfigured`, `configured`, `verified`, `error`. A present key is not a verified connection.
 
+`aiEnabled: false` means the server explicitly disables model calls, even when a key exists. `trialMode` is `live` when a key is configured, `scripted-demo` when the no-key storefront fallback is enabled, or `unavailable`. A `live` mode is configured availability, not proof that inference works; inspect `ai` and actual run records.
+
 `demoAvailable` is true only when the demo-page module is installed. Hide or disable demo actions when false.
 
 ### `POST /api/auth`
 
 Body: `{ "token": "installation access token" }`. Success: `{ "ok": true }` and an HTTP-only session cookie. Do not log or persist the token in client storage.
+
+Protected installations now redirect `/` to a server-owned `/login` page. Its form establishes the session and opens the React application. This works without a frontend login component. HTTPS reverse proxies must be explicitly configured in `TRUST_PROXY` for secure cookies and correct request protocol handling.
 
 ### `POST /api/connection/test`
 
@@ -58,6 +64,20 @@ The queued model name is retained for each job. Credentials and endpoint setting
 Body: `{ "url": "https://example.com", "compareWith": "optional previous audit ID" }`.
 
 Response: `{ "id": "audit ID" }`, HTTP 202.
+
+A controlled demo URL on the current installation's visible origin (including `localhost` or a configured HTTPS proxy) is normalized to the exact server-local demo origin. Other local/private targets remain blocked.
+
+### `GET /api/audits/:id/comparison`
+
+Uses this audit's stored `compareWith` link. Both audits must be complete. Returns `AuditComparison`: before/after IDs, page scope, `scopeMatched`, separate pass/warning/fail/untested counts, and stable check-ID transitions with evidence IDs from each audit.
+
+Transitions are `improved`, `regressed`, `unchanged` or `unverified`. Missing pages, failed inspections or untested checks do not establish a fix. Only controlled broken/fixed paths receive automatic path equivalence; different public staging and production URLs remain unmatched. Markdown fix-kit exports include this comparison when available.
+
+### `GET /api/runs/:id/comparison`
+
+Uses the run's stored `compareWith` link. Both attempts must finish. Returns `RunComparison`: actual outcomes/checks, action counts, durations, model names, comparability reasons and a transition. Model settings, success conditions and recorded provider/deployment metadata must match. An inconclusive attempt cannot establish improvement. Two successful scripted attempts are reported as unchanged, with an explicit no-NVIDIA limitation.
+
+Comparison endpoints return 404 when a linked record is missing and 409 while either record is unfinished. They are protected by the same installation authentication as report endpoints.
 
 ### `GET /api/audits`
 

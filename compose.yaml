@@ -8,10 +8,13 @@ services:
       HOST: 0.0.0.0
       PORT: 4173
       APP_ACCESS_TOKEN: ${APP_ACCESS_TOKEN:?Set a strong installation access token}
+      TRUST_PROXY: ${TRUST_PROXY:-}
       NEBIUS_API_KEY: ${NEBIUS_API_KEY:-}
       NEBIUS_BASE_URL: ${NEBIUS_BASE_URL:-https://api.tokenfactory.nebius.com/v1/}
       NEBIUS_MODEL: ${NEBIUS_MODEL:-nvidia/Nemotron-3_5-Lightning}
       CHROMIUM_NO_SANDBOX: "false"
+      OPENPATH_AI_ENABLED: ${OPENPATH_AI_ENABLED:-true}
+      OPENPATH_DEMO_MODE: ${OPENPATH_DEMO_MODE:-true}
     volumes:
       - openpath-data:/app/data
     shm_size: 512mb

@@ -38,3 +38,6 @@ async function shutdown(){
   server.close();await closeBrowser().catch(()=>{});await stopEgressProxy().catch(()=>{});process.exit(0);
 }
 process.on('SIGINT',()=>void shutdown());process.on('SIGTERM',()=>void shutdown());
+// A local verification parent can stop this process gracefully on Windows,
+// where terminating a process does not reliably deliver POSIX signals.
+if(process.connected)process.on('message',message=>{if(message==='openpath:shutdown')void shutdown();});

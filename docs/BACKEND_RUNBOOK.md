@@ -32,6 +32,21 @@ npm run test:browser
 
 Browser tests use temporary artifact storage. The production entry point never mounts the test fixture.
 
+### Credit-free production verification
+
+```bash
+npm run build
+npm run verify:offline
+# Optional: also exercise public DNS, HTTP and browser egress.
+npm run verify:offline -- --public-url https://example.com
+```
+
+The verifier launches the compiled server on an isolated port, with its own installation token and report directory. It sets `OPENPATH_AI_ENABLED=false`, so an existing key cannot trigger inference. It checks the server login, protected APIs, private-address rejection, localhost demo normalization, both audits, real screenshots, scripted cart outcomes, trace downloads, Markdown exports, comparisons, and persistence across a graceful restart.
+
+Results and controlled-demo evidence remain under the ignored `data/verification/offline-*/` folder. Both scripted storefront tasks may pass; the report distinguishes a corrected static check from unchanged task success. The verifier leaves the normal development server and its data alone.
+
+For an explicitly offline installation, set `OPENPATH_AI_ENABLED=false`. Restore it to `true` before live model verification. `OPENPATH_DEMO_MODE` separately controls the scripted storefront fallback.
+
 ### Live inference verification
 
 After account activation and key configuration, start the built application in one terminal and run this from the repository root in another:
@@ -60,6 +75,8 @@ The included Dockerfile builds the backend alone when the frontend is absent, an
 
 Set a strong `APP_ACCESS_TOKEN` of at least 16 characters before binding beyond loopback. Put the service behind HTTPS. `compose.yaml` binds the host port to loopback so a deliberate reverse-proxy setup controls exposure.
 
+The server provides `/login` and an HTTP-only session; do not put the installation token in browser storage or public submission text. If a reverse proxy terminates HTTPS, set `TRUST_PROXY` to that proxy's exact addresses/CIDRs (for example `loopback` when a local reverse proxy connects directly to the Node server). Leave it empty for direct local use. The proxy must preserve the public Host header and set `X-Forwarded-Proto`. This enables secure cookies and correct same-installation demo URL mapping without trusting arbitrary forwarded headers.
+
 Persist `/app/data`. It contains audit reports and captured page data. Keep this directory private and out of Git. The browser cache is separate from report storage.
 
 ```bash
@@ -68,6 +85,8 @@ docker compose up -d
 ```
 
 Docker/runtime compatibility still requires verification on the chosen host. Creating deployment files is not evidence of a successful deployment.
+
+The local Windows Node production flow has been verified. Docker Desktop did not expose a running engine on this development machine, so no successful container build or container runtime is claimed. A public hosting target is still required for release.
 
 ## Limits
 

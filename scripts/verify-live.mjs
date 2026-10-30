@@ -50,6 +50,7 @@ async function save() {
 
 try {
   const health = await request('/api/health');
+  if (health.aiEnabled === false) throw new Error('Set OPENPATH_AI_ENABLED=true before live verification. No inference was attempted.');
   if (health.ai === 'unconfigured') throw new Error('Add NEBIUS_API_KEY to .env before live verification. No inference was attempted.');
   if (!health.browserInstalled || !health.demoAvailable) throw new Error('Install Chromium and build the demo before live verification.');
   if (!/^nvidia\//i.test(health.model)) throw new Error('Select an account-supported NVIDIA model in NEBIUS_MODEL first.');
@@ -72,6 +73,8 @@ try {
     verifyRecords(run.inference, `${variant} trial`);
     if (run.outcome === 'inconclusive') throw new Error(`${variant} trial was inconclusive: ${run.explanation}`);
   }
+  report.auditComparison = await request(`/api/audits/${report.audits[1].id}/comparison`);
+  report.runComparison = await request(`/api/runs/${report.runs[1].id}/comparison`);
   report.completedAt = new Date().toISOString();
   report.fixedTaskCompleted = report.runs[1].outcome === 'completed' && report.runs[1].checks.length > 0 && report.runs[1].checks.every(check => check.passed);
   if (!report.fixedTaskCompleted) process.exitCode = 2;

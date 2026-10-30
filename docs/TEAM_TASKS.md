@@ -17,7 +17,7 @@ The assistant working with Mithul should implement Mithul's tasks. Rohinth can w
 
 ## Mithul: implementation checklist
 
-Status on 30 October 2026: the initial UI/demo and Rohinth's scope/trial improvements are integrated. The full build passes, along with 26 unit/API/model-protocol tests and eight real-Chromium integration tests. NVIDIA review/action code and inference records are implemented, but live inference is unverified until activated Nebius access and a key are available. `npm run verify:live` captures actual review and paired-trial outcomes once access is ready. Offline trials explicitly identify scripted decisions. Remaining frontend work is in `docs/INTEGRATION_STATUS.md`; public deployment remains unverified.
+Status on 30 October 2026: Rohinth's published UI/demo milestones are integrated. The full build, 36 unit/API/model-protocol tests, nine Chromium tests and credit-free production verification pass. Server-owned installation login, protected hosting support, audit/task comparisons, exports and restart persistence are verified locally. NVIDIA review/action code and inference records are implemented, but live inference remains unverified until activated access is available. `npm run verify:live` captures actual model outcomes; `npm run verify:offline` explicitly disables all model calls. Remaining frontend presentation and public hosting work are tracked in `docs/INTEGRATION_STATUS.md`.
 
 ### M1. Backend foundation
 
@@ -56,9 +56,10 @@ Status on 30 October 2026: the initial UI/demo and Rohinth's scope/trial improve
 
 ### M5. Integration and release
 
-- [ ] Integrate Rohinth's work without overwriting it.
-- [ ] Validate happy paths, failures, containment and exports.
-- [ ] Build and deploy the combined application.
+- [x] Integrate Rohinth's published milestones without overwriting his frontend files.
+- [x] Validate offline happy paths, failures, containment, comparisons and exports.
+- [x] Build and verify the combined application in local production mode.
+- [ ] Deploy and verify the combined application on the chosen public host.
 - [ ] Record live NVIDIA proof and verify submission links.
 - [ ] Push the release milestone.
 
