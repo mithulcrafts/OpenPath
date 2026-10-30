@@ -31,7 +31,3 @@ The full local report is ignored by Git under `data/verification/live-1793369841
 - `GET /api/budget` reports the limit, conservative reservation, usage estimate and stop state. These totals cover this installation/data directory only. They cannot control another app's requests or account-wide charges.
 - Keep the data directory and budget ledger. Do not delete the ledger, change data directories or run a second paid installation to reset the cap. A teammate using the same key must coordinate separate usage.
 - Provider prices are from the [official catalogue](https://tokenfactory.nebius.com/model-catalog.md), checked 30 October 2026: USD 0.06/M input and USD 0.24/M output tokens. The usage figure is an estimate, not a billing statement or live remaining-credit balance.
-
-## Current release boundary
-
-Local backend and live inference are verified. Rohinth's remaining UI integration is assigned in `ROHINTH_HANDOFF.md`. Public hosting has not been selected and is not part of the current local completion target.

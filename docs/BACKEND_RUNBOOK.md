@@ -68,17 +68,17 @@ The command saves actual audits, task outcomes and inference metadata in the ign
 
 `npm test` additionally exercises the real SDK against a local fake provider: required tools, malformed output, invented findings, credential changes, HTTP 401/429, timeouts and response metadata. These tests use fake credentials and are not evidence of live Nebius access.
 
-## Frontend and demo handoff
+## Frontend and controlled demo
 
 Use `shared/types.ts` and `docs/API_CONTRACT.md`. Do not infer success from a job reaching its terminal status.
 
-Rohinth supplies `demo-site/pages.ts` with the documented renderer. The backend supplies the cart API and session state. Health reports `demoAvailable: false` until that module exists.
+`demo-site/pages.ts` contains the storefront renderer. The backend supplies the cart API and session state. Health reports `demoAvailable: false` if that module is missing.
 
 The app's API and artifacts share the same origin. No browser-cloud account, external database or Redis setup is required.
 
 ## Hosting
 
-The included Dockerfile builds the backend alone when the frontend is absent, and the complete application after frontend integration. Container startup runs as a non-root user. Use a host that supports Chromium sandboxing and its required Linux namespaces. Some container platforms need additional approved sandbox configuration; do not silently disable the sandbox to make deployment appear successful.
+The included Dockerfile builds the application and starts it as a non-root user. Use a host that supports Chromium sandboxing and its required Linux namespaces. Some container platforms need additional approved sandbox configuration; do not silently disable the sandbox to make deployment appear successful.
 
 Set a strong `APP_ACCESS_TOKEN` of at least 16 characters before binding beyond loopback. Put the service behind HTTPS. `compose.yaml` binds the host port to loopback so a deliberate reverse-proxy setup controls exposure.
 
@@ -91,9 +91,7 @@ docker compose build
 docker compose up -d
 ```
 
-Docker/runtime compatibility still requires verification on the chosen host. Creating deployment files is not evidence of a successful deployment.
-
-The local Windows Node production flow has been verified. Docker Desktop did not expose a running engine on this development machine, so no successful container build or container runtime is claimed. A public hosting target is still required for release.
+The local Windows Node production flow has been verified. The container build and runtime have not been verified; validate them on the chosen host before deployment.
 
 ## Limits
 
@@ -113,4 +111,4 @@ The local Windows Node production flow has been verified. Docker Desktop did not
 | Audit completed in rule mode | Read `model.note`; NVIDIA review was missing, disabled or failed. |
 | Trial complete but not successful | Read `outcome` and independent `checks`, not just `status`. |
 | Site relies on blocked capabilities | Read limitations; do not treat an inspection-policy limitation as a confirmed site defect. |
-| Demo unavailable | Integrate `demo-site/pages.ts` and rebuild/restart as appropriate. |
+| Demo unavailable | Confirm `demo-site/pages.ts` is present, then rebuild and restart. |

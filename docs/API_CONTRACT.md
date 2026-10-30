@@ -1,6 +1,6 @@
 # Frontend/backend contract
 
-This is the implemented backend contract. Shared TypeScript types are published under `shared/types.ts`. Mithul owns contract changes; Rohinth owns the consuming UI.
+This is the implemented backend contract. Shared TypeScript types are published under `shared/types.ts`.
 
 ## Common behavior
 
@@ -43,11 +43,11 @@ This is the implemented backend contract. Shared TypeScript types are published 
 
 Body: `{ "token": "installation access token" }`. Success: `{ "ok": true }` and an HTTP-only session cookie. Do not log or persist the token in client storage.
 
-Protected installations now redirect `/` to a server-owned `/login` page. Its form establishes the session and opens the React application. This works without a frontend login component. HTTPS reverse proxies must be explicitly configured in `TRUST_PROXY` for secure cookies and correct request protocol handling.
+Protected installations redirect `/` to a server-owned `/login` page. Its form establishes the session and opens the React application. HTTPS reverse proxies must be explicitly configured in `TRUST_PROXY` for secure cookies and correct request protocol handling.
 
 ### `POST /api/connection/test`
 
-Runs a minimal live tool-calling check. Returns `{ "ok": true, "inference": [...] }` on verified success; otherwise the standard error response. Read health again for the updated state. The added `inference` array is backward-compatible with clients that read only `ok`.
+Runs a minimal live tool-calling check. Returns `{ "ok": true, "inference": [...] }` on verified success; otherwise the standard error response. Read health again for the updated state.
 
 ### `GET /api/budget`
 
@@ -177,7 +177,7 @@ Serves an authorised screenshot, observation file or trace. Use the exact return
 
 ## Demo-site integration
 
-Rohinth provides `demo-site/pages.ts` exporting:
+`demo-site/pages.ts` exports:
 
 ```ts
 export function renderDemoPage(
@@ -188,7 +188,7 @@ export function renderDemoPage(
 
 Return a complete HTML document. Keep demo navigation under `/demo/{variant}/`. The demo can use inline CSS and JavaScript, with no external credentials or services.
 
-Mithul mounts those pages and implements:
+The backend mounts those pages and implements:
 
 - `GET /demo/api/cart`: `{ "items": [...] }` for the current HTTP-only session.
 - `POST /demo/api/cart`: accepts `{ "sku": "everyday-tee", "color": "blue", "size": "M", "quantity": 1 }` and returns the cart state.

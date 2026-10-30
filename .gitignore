@@ -9,3 +9,6 @@ test-results/
 playwright-report/
 *.log
 .DS_Store
+# Keep local submission materials out of Git; preserve the published test build.
+/submission/*
+!/submission/openpath-test-build.zip
