@@ -4,7 +4,7 @@ import type { Page, BrowserContext } from 'playwright';
 import { isPublicIp, parseTarget, resolvePublicTarget } from '../server/network.js';
 import { inspectPages, parseHtml } from '../server/checks.js';
 import { ActionSchema, readableModelError } from '../server/model.js';
-import { evaluateAssertions, validateAction } from '../server/runner.js';
+import { demoDecide, evaluateAssertions, validateAction } from '../server/runner.js';
 import { exportFixKit } from '../server/report.js';
 import type { Audit, PageEvidence } from '../shared/types.js';
 
@@ -67,6 +67,19 @@ test('independent cart checks reject a success claim with wrong state',async()=>
 test('model errors do not echo secret-bearing provider messages',()=>{
   assert.equal(readableModelError({status:401,message:'Authorization: secret'}).includes('secret'),false);
   assert.match(readableModelError({status:429}),/limits/);
+});
+
+test('offline demo advances past selected options and never clicks the cart counter',()=>{
+  const controls=[
+    {id:'cart',tag:'button',name:'Cart 0',type:'button'},
+    {id:'colour',tag:'select',name:'Colour',type:'',value:'sand'},
+    {id:'size',tag:'select',name:'Size',type:'',value:'S'},
+    {id:'add',tag:'button',name:'Add Everyday Tee to cart',type:'button'},
+  ];
+  const next=()=>demoDecide('Standard demo task','http://127.0.0.1:4173/demo/fixed/product',{controls});
+  assert.deepEqual(next(),{action:'select',elementId:'colour',value:'blue'});
+  controls[1].value='blue';assert.deepEqual(next(),{action:'select',elementId:'size',value:'M'});
+  controls[2].value='M';assert.deepEqual(next(),{action:'click',elementId:'add'});
 });
 
 test('fix export preserves evidence, limitations and untrusted-source boundaries',()=>{

@@ -5,7 +5,7 @@ import type { Assertion, AssertionResult, TaskRun } from '../shared/types.js';
 import { artifactDir, saveRun } from './store.js';
 import { makeContext, observePage, redactError } from './browser.js';
 import { chooseAction, readableModelError, type AgentAction } from './model.js';
-import { config, demoOrigin, isDemoUrl } from './config.js';
+import { demoOrigin, isDemoUrl } from './config.js';
 import { readDemoCart } from './demo-api.js';
 
 export async function evaluateAssertions(page: Page, context: BrowserContext, assertions: Assertion[], options:{cartState?:typeof readDemoCart}={}): Promise<AssertionResult[]> {
@@ -44,26 +44,29 @@ export function validateAction(action: AgentAction, controls: {id:string;disable
 // A transparent, deterministic fallback keeps the controlled storefront demo
 // runnable before a team configures a Nebius key. It is never used for public
 // sites and the UI labels the resulting run as openpath-demo-simulator.
-function demoDecide(_goal: string, url: string, observation: { controls: { id: string; tag: string; href?: string; name: string; type: string; disabled?: boolean; options?: { value: string }[] }[] }): AgentAction {
+export function demoDecide(_goal: string, url: string, observation: { controls: { id: string; tag: string; href?: string; name: string; type: string; value?: string; disabled?: boolean; options?: { value: string }[] }[] }): AgentAction {
   const product = observation.controls.find(c => c.tag === 'a' && c.href?.includes('/product'));
   if (!/\/product(?:\/|$)/.test(new URL(url).pathname) && product) return { action: 'click', elementId: product.id };
   const color = observation.controls.find(c => c.tag === 'select' && c.name.toLowerCase().includes('colour'));
-  if (color && !/blue/i.test(String(color.options?.[0]?.value))) return { action: 'select', elementId: color.id, value: 'blue' };
+  if (color && color.value !== 'blue') return { action: 'select', elementId: color.id, value: 'blue' };
   const size = observation.controls.find(c => c.tag === 'select' && c.name.toLowerCase().includes('size'));
-  if (size) return { action: 'select', elementId: size.id, value: 'M' };
+  if (size && size.value !== 'M') return { action: 'select', elementId: size.id, value: 'M' };
   const buttons = observation.controls.filter(c => c.tag === 'button' && !c.disabled);
-  const add = buttons.find(c => /add|cart/i.test(c.name)) || buttons.at(-1);
+  const add = buttons.find(c => /add/i.test(c.name)) || buttons.find(c => !c.name);
   if (add) return { action: 'click', elementId: add.id };
   return { action: 'finish' };
 }
 
 export async function executeRun(run: TaskRun, options: { decide?: typeof chooseAction } = {}) {
-  const decide = options.decide || (!config().key && config().demoMode && isDemoUrl(run.startUrl) ? demoDecide : chooseAction);
+  // Keep the queued mode stable even if credentials change while a job waits.
+  const scripted = !options.decide && run.model === 'openpath-demo-simulator';
+  const decide = options.decide || (scripted ? demoDecide : chooseAction);
   let context: BrowserContext | undefined;
   const started = Date.now();
   const deadline = started + run.maxDurationMs;
   const dir = artifactDir(run.id);
   try {
+    if(scripted && !isDemoUrl(run.startUrl)) throw new Error('Scripted trials are restricted to the controlled storefront.');
     run.status = 'running'; await saveRun(run); await mkdir(dir,{recursive:true});
     const sandbox = isDemoUrl(run.startUrl);
     context = await makeContext(run.startUrl,sandbox);
@@ -146,6 +149,7 @@ export async function executeRun(run: TaskRun, options: { decide?: typeof choose
     run.explanation=error instanceof Error ? error.message.split('\n')[0].slice(0,350) : 'The browser run could not complete.';
   } finally {
     await context?.close().catch(() => {});
+    if(scripted) run.explanation=`Scripted demo only; no NVIDIA model was called. ${run.explanation}`;
     run.status='complete';run.completedAt=new Date().toISOString();run.durationMs=Date.now()-started;await saveRun(run);
   }
 }

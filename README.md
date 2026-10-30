@@ -32,8 +32,9 @@ Built for the Nebius × NVIDIA Global AI Hackathon. NVIDIA Nemotron on Nebius To
 - [Mithul and Rohinth's task assignments](docs/TEAM_TASKS.md)
 - [Frontend/backend API contract](docs/API_CONTRACT.md)
 - [Backend setup, verification and deployment runbook](docs/BACKEND_RUNBOOK.md)
+- [Integration status and remaining frontend handoff](docs/INTEGRATION_STATUS.md)
 
-The backend workstream is on `mithul/backend`, with tested milestones integrated into `main`. It includes the API, shared types, audit checks, evidence storage, fix export, and bounded browser runner. Type checking, the server build, 16 unit/API tests and five real-Chromium integration tests passed on 30 October 2026. Browser tests use a declared decision stub; live NVIDIA calls still require a configured key and verification. Frontend/demo integration and deployment remain pending.
+The backend workstream is on `mithul/backend`, with tested milestones integrated into `main`. Rohinth's initial frontend and storefront are integrated. The full production build, 17 unit/API tests and seven real-Chromium integration tests passed on 30 October 2026. Offline browser checks use declared scripted decisions; live NVIDIA calls still require activated Nebius access, a configured key and verification. Remaining frontend integration gaps are recorded in the integration handoff. Deployment is not yet verified.
 
 ## Backend setup
 
@@ -48,7 +49,7 @@ npm run dev
 
 PowerShell: use `Copy-Item .env.example .env` in place of `cp` if needed. Set `NEBIUS_API_KEY` in `.env` for NVIDIA analysis. The backend reads that file on requests, so adding the key does not require editing source code.
 
-Default address: `http://127.0.0.1:4173`. Check `/api/health`. Until Rohinth's frontend is integrated, `/` returns backend status rather than a product UI. Demo actions remain unavailable until `demo-site/pages.ts` exists.
+Default address: `http://127.0.0.1:4173`. Check `/api/health`. The root serves the interface, and `/demo/broken/` and `/demo/fixed/` serve the controlled storefronts. Use this exact loopback address for local testing.
 
 ```bash
 npm run typecheck
@@ -57,7 +58,7 @@ npm run build:server
 npm run test:browser
 ```
 
-`npm run build` builds the complete product after frontend integration. Never commit `.env`. Set a strong `APP_ACCESS_TOKEN` before binding to a public interface.
+`npm run build` builds the combined frontend and backend. Never commit `.env`. Set a strong `APP_ACCESS_TOKEN` before binding to a public interface; the frontend's installation-login flow remains on the integration checklist.
 
 ## Collaboration
 

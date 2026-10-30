@@ -17,7 +17,7 @@ The assistant working with Mithul should implement Mithul's tasks. Rohinth can w
 
 ## Mithul: implementation checklist
 
-Status on 30 October 2026: backend type checking, server build, 16 unit/API tests and five real-Chromium integration tests pass. NVIDIA review/action code is implemented but live inference is unverified until the key is configured. Browser tests use explicitly labelled decision stubs. Rohinth's UI/demo, combined application verification and deployment remain pending.
+Status on 30 October 2026: the initial UI/demo is integrated and the full build passes, along with 17 unit/API tests and seven real-Chromium integration tests. NVIDIA review/action code is implemented but live inference is unverified until activated Nebius access and a key are available. Offline trials explicitly identify scripted decisions. Remaining frontend work is in `docs/INTEGRATION_STATUS.md`; public deployment remains unverified.
 
 ### M1. Backend foundation
 
@@ -35,7 +35,7 @@ Status on 30 October 2026: backend type checking, server build, 16 unit/API test
 - [x] Implement the ten checks in the plan.
 - [x] Return a complete report with four categories and clear limitations.
 - [x] Preserve deterministic results when model access is unavailable.
-- [ ] Push a tested end-to-end audit milestone.
+- [x] Push a tested end-to-end audit milestone.
 
 ### M3. NVIDIA recommendations and developer export
 
@@ -52,7 +52,7 @@ Status on 30 October 2026: backend type checking, server build, 16 unit/API test
 - [x] Record screenshots, actions, errors, trace files and actual outcomes.
 - [x] Handle stale IDs, action loops, timeouts, access blocks and invalid output in the implementation.
 - [x] Support fresh-context reruns and reject mismatched goals, models and assertions in comparisons.
-- [ ] Push the tested trial milestone.
+- [x] Push the tested trial milestone, with real browser mechanics and explicitly scripted offline decisions.
 
 ### M5. Integration and release
 

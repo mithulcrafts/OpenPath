@@ -15,7 +15,7 @@ Set `NEBIUS_API_KEY`, `NEBIUS_BASE_URL`, and the exact `NEBIUS_MODEL` identifier
 
 Call `POST /api/connection/test`. A successful tool-call response changes health from `configured` to `verified`. Model availability and schema compatibility depend on the actual account. If the candidate model is unavailable, use another NVIDIA Nemotron model from the account's catalog and retest.
 
-Missing or failed inference leaves deterministic audit findings available. A browser trial requires working model access and never substitutes a scripted result.
+Missing or failed inference leaves deterministic audit findings available. Live browser trials require working model access. With no key and `OPENPATH_DEMO_MODE=true`, the controlled storefront supports a separate scripted trial of the standard blue, size-M cart task. Its model field is `openpath-demo-simulator`, and its explanation explicitly disclaims NVIDIA inference. Public-site and custom tasks do not use this script. A failed live call is never replaced with a scripted success.
 
 ## Validation commands
 
@@ -28,7 +28,7 @@ npm run test:browser
 
 `npm test` covers API authentication, request validation, private-network rejection, check interpretation, tool validation and independent evaluator behavior.
 
-`npm run test:browser` uses real Chromium against a small backend-only fixture. It verifies real crawling, screenshots, detected changes, independent cart results, trace capture and blocked loopback access. Its decision stub is explicitly test-only; passing these tests does not establish live NVIDIA agent performance.
+`npm run test:browser` uses real Chromium against a small backend fixture and the shipped storefront. It verifies real crawling, screenshots, detected changes, independent cart results, trace capture and blocked loopback access. The suite also checks that the scripted storefront flow progresses through selected options and identifies itself as scripted. Passing these tests does not establish live NVIDIA agent performance.
 
 Browser tests use temporary artifact storage. The production entry point never mounts the test fixture.
 

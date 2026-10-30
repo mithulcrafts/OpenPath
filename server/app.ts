@@ -102,17 +102,21 @@ export function createApp(options:AppOptions={}) {
     if(audit.status!=='complete'){res.status(409).json({error:'Complete the audit before starting a trial.'});return;}
     if(!config().key && !(config().demoMode && isDemoUrl(audit.url))){res.status(409).json({error:'Configure a Nebius key to run a live NVIDIA browser trial. Demo mode is only available for the controlled storefront.'});return;}
     const demo=isDemoUrl(audit.url);
+    const scripted=!config().key && config().demoMode && demo;
+    if(scripted && (body.goal || body.assertions)){res.status(400).json({error:'The scripted demo supports only the standard blue, size-M cart task. Configure Nebius for custom trials.'});return;}
     if(!demo&&(!body.goal||!body.assertions)){res.status(400).json({error:'Provide a browsing goal and an independent URL or visible-text success condition.'});return;}
     if(!!body.goal!==!!body.assertions){res.status(400).json({error:'Provide both a goal and its success conditions, or omit both for the standard demo task.'});return;}
     if(jobs.pending>=12){res.status(429).json({error:'The run queue is full. Retry shortly.'});return;}
     const goal=body.goal||'Add the Everyday Tee in blue, size M, to the cart. Stop once the cart contains one matching item.';
     const assertions:Assertion[]=body.assertions||[{kind:'fixture_cart',sku:'everyday-tee',color:'blue',size:'M',quantity:1}];
+    const model=scripted ? 'openpath-demo-simulator' : config().model;
+    const promptVersion=scripted ? 'openpath-demo-v1' : 'openpath-dom-v1';
     if(body.compareWith){
       const before=await getRun(body.compareWith);
       if(!before){res.status(404).json({error:'The comparison run was not found.'});return;}
-      if(before.goal!==goal||before.model!==config().model||JSON.stringify(before.assertions)!==JSON.stringify(assertions)){res.status(400).json({error:'A paired comparison must use the same goal, model and success conditions.'});return;}
+      if(before.goal!==goal||before.model!==model||before.promptVersion!==promptVersion||before.profile!=='rendered-dom'||before.maxSteps!==12||before.maxDurationMs!==120000||JSON.stringify(before.assertions)!==JSON.stringify(assertions)){res.status(400).json({error:'A paired comparison must use the same goal, model, runner settings and success conditions.'});return;}
     }
-    const run:TaskRun={id:newId(),auditId:audit.id,startUrl:audit.url,goal,assertions,status:'queued',createdAt:new Date().toISOString(),steps:[],checks:[],explanation:'',model:!config().key && config().demoMode ? 'openpath-demo-simulator' : config().model,profile:'rendered-dom',promptVersion:!config().key && config().demoMode ? 'openpath-demo-v1' : 'openpath-dom-v1',maxSteps:12,maxDurationMs:120000,compareWith:body.compareWith};
+    const run:TaskRun={id:newId(),auditId:audit.id,startUrl:audit.url,goal,assertions,status:'queued',createdAt:new Date().toISOString(),steps:[],checks:[],explanation:scripted?'Scripted demo only; no NVIDIA model will be called.':'',model,profile:'rendered-dom',promptVersion,maxSteps:12,maxDurationMs:120000,compareWith:body.compareWith};
     await saveRun(run);jobs.add(()=>executeRun(run));res.status(202).json({id:run.id});
   });
   app.get('/api/artifacts/:id/:name',async(req,res)=>{

@@ -79,9 +79,17 @@ const OBSERVE_SCRIPT = `(() => {
     if (element.tagName === 'INPUT' && ['submit','button','reset'].includes(element.type)) return clean(element.value || element.type);
     if (element.tagName === 'INPUT' && element.type === 'image') return clean(element.alt);
     if (!['INPUT','TEXTAREA','SELECT'].includes(element.tagName)) {
-      const text = clean(element.innerText);
+      // Decorative aria-hidden text must not supply a control's name. This is
+      // a bounded name heuristic, not a complete accessibility-tree algorithm.
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+      const parts = [];
+      let node;
+      while ((node = walker.nextNode())) {
+        if (node.parentElement && !node.parentElement.closest('[aria-hidden="true"],[hidden],script,style') && visible(node.parentElement)) parts.push(node.textContent);
+      }
+      const text = clean(parts.join(' '));
       if (text) return text;
-      const alt = Array.from(element.querySelectorAll('img')).map(img => img.alt).filter(Boolean).join(' ');
+      const alt = Array.from(element.querySelectorAll('img')).filter(img => visible(img) && !img.closest('[aria-hidden="true"]')).map(img => img.alt).filter(Boolean).join(' ');
       if (alt) return clean(alt);
     }
     return clean(element.getAttribute('title'));

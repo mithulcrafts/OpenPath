@@ -111,6 +111,8 @@ Public-site assertions: `url_contains` or `visible_text`, with a nonempty `value
 
 For the built-in demo, the backend can provide the fixed cart task and independent `fixture_cart` assertion. Omit `goal` and `assertions` to request that demo task. This shortcut is not accepted for arbitrary sites.
 
+When no key is configured and `OPENPATH_DEMO_MODE=true`, only that standard demo task can use the scripted fallback. These runs identify themselves with `model: openpath-demo-simulator` and `promptVersion: openpath-demo-v1`. Show “Scripted demo — no model called” before and during the run as well as in results. Never compare this run with a live NVIDIA run as evidence of model improvement. Paired comparisons require the same model, prompt version, profile, action/time budgets, goal and assertions.
+
 ### `GET /api/runs?auditId=...`
 
 Response: `{ "runs": [...] }`.

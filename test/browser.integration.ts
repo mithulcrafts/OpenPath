@@ -13,6 +13,7 @@ import { startEgressProxy,stopEgressProxy } from '../server/network.js';
 import { newId,artifactDir } from '../server/store.js';
 import { exportFixKit } from '../server/report.js';
 import type { Audit,TaskRun } from '../shared/types.js';
+import { renderDemoPage } from '../demo-site/pages.js';
 
 // Deliberately small backend verification fixture. This is not Rohinth's demo
 // presentation and is never mounted by the production entry point.
@@ -21,9 +22,10 @@ function fixture(variant:string,page:string) {
   return `<!doctype html><html lang="en"><head><title>Backend integration fixture</title><script type="application/ld+json">${fixed?'{"@type":"Product","name":"Everyday Tee"}':'{"@type":"Product",}'}</script></head><body><h1>Everyday Tee</h1><p>Backend integration fixture only. A blue tee in size M.</p><a href="/demo/${variant}/${page==='product'?'about':'product'}">${page==='product'?'About':'Product details'}</a><button ${fixed?'aria-label="Add blue medium tee to cart"':''} onclick="fetch('/demo/api/cart',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sku:'everyday-tee',color:'blue',size:'M',quantity:1})}).then(r=>r.json()).then(()=>document.querySelector('#result').textContent='Item added')">${fixed?'Add to cart':''}</button><p id="result" role="status"></p><label ${fixed?'for="email"':''}>Work email</label><input id="email" type="email" placeholder="you@example.com"></body></html>`;
 }
 let server:http.Server;let origin:string;let temp:string;
+let useStorefront=false;
 before(async()=>{
   temp=await mkdtemp(path.join(tmpdir(),'openpath-browser-tests-'));process.env.OPENPATH_DATA_DIR=temp;
-  const app=createApp({demoRenderer:fixture});app.use(errorHandler);
+  const app=createApp({demoRenderer:(variant,page)=>useStorefront?renderDemoPage(variant,page):fixture(variant,page)});app.use(errorHandler);
   server=http.createServer((req,res)=>{
     if(req.url?.startsWith('/demo/')&&req.headers['user-agent']==='OpenPath/0.1 (agent-compatibility-audit)'){
       res.setHeader('Content-Type','text/html');res.end('<html><body>Alternative HTTP-client representation.</body></html>');return;
@@ -81,6 +83,30 @@ test('a real browser action passes only after the server cart state matches',asy
   }});
   assert.equal(attempt.outcome,'completed',JSON.stringify({explanation:attempt.explanation,checks:attempt.checks,steps:attempt.steps}));assert(attempt.checks.every(c=>c.passed));
   assert(attempt.trace);assert((await stat(path.join(artifactDir(attempt.id),'trace.zip'))).size>1000);
+});
+
+test('the shipped storefront exposes an unnamed decorative button and the fixed variant names it',async()=>{
+  useStorefront=true;
+  try{
+    const beforeAudit=audit('broken');await executeAudit(beforeAudit,{useAI:false});
+    assert.equal(beforeAudit.status,'complete',beforeAudit.error||'Broken storefront audit should complete');
+    assert(beforeAudit.findings.some(f=>f.title==='Name controls by what they do'));
+    const afterAudit=audit('fixed');await executeAudit(afterAudit,{useAI:false});
+    assert.equal(afterAudit.status,'complete',afterAudit.error||'Fixed storefront audit should complete');
+    assert(!afterAudit.findings.some(f=>f.title==='Name controls by what they do'));
+  }finally{useStorefront=false;}
+});
+
+test('the shipped offline demo completes the real cart flow and explicitly disclaims model inference',async()=>{
+  useStorefront=true;
+  try{
+    const attempt=run();attempt.startUrl=`${origin}/demo/fixed/`;
+    attempt.model='openpath-demo-simulator';attempt.promptVersion='openpath-demo-v1';
+    await executeRun(attempt);
+    assert.equal(attempt.outcome,'completed',JSON.stringify({explanation:attempt.explanation,steps:attempt.steps}));
+    assert.match(attempt.explanation,/Scripted demo only; no NVIDIA model was called/);
+    assert(attempt.checks.every(check=>check.passed));
+  }finally{useStorefront=false;}
 });
 
 test('browser egress cannot reach another loopback service',async()=>{
