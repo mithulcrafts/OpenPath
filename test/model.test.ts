@@ -96,6 +96,14 @@ test('provider classification requires an observed official HTTPS origin', () =>
   }
 });
 
+test('an unpriced external endpoint is blocked before dispatch and cannot produce inference evidence', async () => {
+  process.env.NEBIUS_BASE_URL = 'https://unpriced.invalid/v1/';
+  const records: InferenceRecord[] = [];
+  await assert.rejects(callTool('test', 'test', 'check_connection', {}, value => value, { session: createModelSession(undefined, record => records.push(record)) }), /Unpriced/);
+  assert.equal(requests.length, 0);
+  assert.equal(records.length, 0);
+});
+
 test('malformed tool JSON is an explicit failure rather than verified analysis', async () => {
   respond = (body, response) => completion(body, response, '{bad json');
   await assert.rejects(verifyConnection(), SyntaxError);

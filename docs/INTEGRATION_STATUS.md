@@ -17,7 +17,7 @@ Tested milestones are integrated on `main` and `mithul/backend`. Use the latest 
 - Server-owned installation login works in Chromium, including invalid tokens, HTTP-only sessions and reloads. HTTPS proxy trust is explicit.
 - Audit and task comparison APIs return actual before/after checks, evidence and outcomes without treating missing coverage as a fix.
 - Visible localhost/hosted demo URLs normalize to the controlled server sandbox.
-- `npm run typecheck`, `npm run build`, 36 unit/API/model-protocol tests and nine real-Chromium integration tests pass.
+- `npm run typecheck`, `npm run build`, 44 unit/API/model-protocol/budget tests and nine real-Chromium integration tests pass.
 - The isolated offline production verifier passes through both audits and trials, image/trace/export downloads, comparisons, a public-site audit and restart persistence. No AI provider is called.
 
 ## Frontend integration still available to connect
@@ -26,8 +26,10 @@ The backend supplies `aiEnabled`, `trialMode`, `inference[]`, `/api/audits/:id/c
 
 ## External release steps
 
-1. Set `NEBIUS_API_KEY` and the exact available NVIDIA Nemotron model in `.env`.
-2. Run `npm run verify:live` and capture the genuine connection, review and paired-trial evidence for submission.
+Live connection, both NVIDIA reviews and both browser task attempts were verified locally on 30 October; see `LIVE_VERIFICATION.md`. The requested completion target is now local verification, with public hosting deferred until a service is selected. Spending protection caps this installation at USD 1 using persistent conservative reservations.
+
+1. Keep `NEBIUS_API_KEY` in local `.env` and preserve `data/ai-budget.json`; never commit either.
+2. Use the captured live evidence for submission. Do not repeat paid verification merely to obtain a preferred outcome.
 3. Deploy with a strong `APP_ACCESS_TOKEN`, persistent `/app/data`, HTTPS and Chromium support.
 4. Verify the public-site flow again on the selected host and run a live Nemotron browser trial; keep the controlled storefront available for the video.
 5. Record the <=3-minute demo, publish the demo URL and keep the deployment available through judging.

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { config } from './config.js';
 import type { Audit, Health, InferenceRecord } from '../shared/types.js';
 import type { Observation } from './browser.js';
+import { SpendGuard, BudgetError, MAX_OUTPUT_TOKENS } from './budget.js';
 
 let connection: { signature: string; status: 'verified' | 'error'; message: string } | undefined;
 type ModelSettings = Pick<ReturnType<typeof config>, 'key' | 'baseURL' | 'model' | 'modelTimeout'>;
@@ -31,6 +32,7 @@ export function connectionStatus(): { ai: Health['ai']; aiMessage: string } {
   return { ai: 'configured', aiMessage: 'A key is configured. An inference call has not yet been verified.' };
 }
 export function readableModelError(error: unknown) {
+  if (error instanceof BudgetError) return error.message;
   const status = (error as { status?: number })?.status;
   if (status === 401 || status === 403) return 'Nebius rejected the credentials or this model is not permitted for the account.';
   if (status === 404) return 'The configured model or endpoint is unavailable. Check NEBIUS_MODEL and NEBIUS_BASE_URL.';
@@ -64,19 +66,27 @@ export async function callTool<T>(system: string, user: string, name: string, pa
   const endpoint = modelEndpoint(settings);
   const record: InferenceRecord = { id: randomUUID(), ...endpoint, requestedModel: settings.model, tool: name, startedAt: new Date(started).toISOString(), durationMs: 0, status: 'failed' };
   const client = new OpenAI({ apiKey: settings.key, baseURL: settings.baseURL, timeout: options.timeoutMs || settings.modelTimeout, maxRetries: 0 });
+  const guard = endpoint.provider === 'nebius' ? new SpendGuard() : undefined;
+  let dispatched = false;
   try {
-    const response = await client.chat.completions.create({
+    // Only loopback fake providers bypass the paid-provider ledger in tests.
+    if (!guard && !['127.0.0.1', 'localhost', '[::1]'].includes(new URL(settings.baseURL).hostname)) throw new BudgetError('Unpriced custom endpoints are blocked by the spending policy.');
+    const request: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming = {
       model: settings.model,
       messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
       tools: [{ type: 'function', function: { name, description: 'Return the requested structured result.', parameters } }],
       tool_choice: { type: 'function', function: { name } },
       temperature: 0.1,
-      max_tokens: 2600,
-    });
+      max_tokens: name === 'browser_action' ? 600 : name === 'check_connection' ? 128 : MAX_OUTPUT_TOKENS,
+    };
+    if (guard) record.reservedUsd = guard.reserve(settings.model, Buffer.byteLength(JSON.stringify(request)), request.max_tokens!);
+    dispatched = true;
+    const response = await client.chat.completions.create(request);
     record.responseId = response.id;
     record.responseModel = response.model;
     record.requestId = response._request_id || undefined;
     if (response.usage) record.usage = { inputTokens: response.usage.prompt_tokens, outputTokens: response.usage.completion_tokens, totalTokens: response.usage.total_tokens };
+    guard?.recordUsage(record.usage);
     const tool = response.choices[0]?.message.tool_calls?.find(t => t.type === 'function' && t.function.name === name);
     if (!tool || tool.type !== 'function') throw new ModelOutputError('Expected structured tool output was not returned.');
     const result = validate(JSON.parse(tool.function.arguments));
@@ -88,8 +98,9 @@ export async function callTool<T>(system: string, user: string, name: string, pa
     connection = { signature: signature(settings), status: 'error', message: record.error };
     throw error;
   } finally {
+    // Failed calls and unknown usage retain their full reservation. Do not retry.
     record.durationMs = Date.now() - started;
-    session.onInference?.(record);
+    if (dispatched) session.onInference?.(record);
   }
 }
 

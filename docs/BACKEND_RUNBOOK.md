@@ -59,6 +59,8 @@ npm run verify:live
 
 This command uses real Token Factory credits. It checks one structured connection response, audits both controlled storefront variants, and runs the same cart task against each with fresh browser contexts. It reads `PORT` and `APP_ACCESS_TOKEN` locally; no key or access token is printed. It refuses to claim a live result from missing keys, rule-only analysis, scripted decisions or a custom endpoint.
 
+The first live production verification passed on 30 October 2026: see `LIVE_VERIFICATION.md`. Spending is guarded by `OPENPATH_AI_BUDGET_USD` (default and maximum USD 1). Each bounded paid call atomically reserves USD 0.02 in the persistent data directory before dispatch. Failed calls retain that reservation; automatic retries are off. `/api/budget` and authorized health show usage estimates and the stop state. Do not delete the ledger or change the data directory to reset the cap. This guard does not measure or constrain another app's account usage. The verifier records budget status before and after the run.
+
 The command saves actual audits, task outcomes and inference metadata in the ignored `data/verification/` directory, or the configured `OPENPATH_DATA_DIR`. A broken variant may still succeed: report that outcome honestly. Exit code 1 indicates incomplete verification; exit code 2 means inference was recorded but the fixed storefront task did not pass. One paired attempt does not establish a success rate or a universal compatibility score.
 
 `npm test` additionally exercises the real SDK against a local fake provider: required tools, malformed output, invented findings, credential changes, HTTP 401/429, timeouts and response metadata. These tests use fake credentials and are not evidence of live Nebius access.

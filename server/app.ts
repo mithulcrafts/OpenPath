@@ -16,6 +16,7 @@ import { exportFixKit } from './report.js';
 import { mountDemoApi } from './demo-api.js';
 import { compareAudits, compareRuns, runSettingsMismatches } from './comparison.js';
 import { accessPage } from './access.js';
+import { budgetStatus } from './budget.js';
 import type { Assertion, Audit, Health, TaskRun } from '../shared/types.js';
 
 const compareSecret=(a:string,b:string)=>timingSafeEqual(createHash('sha256').update(a).digest(),createHash('sha256').update(b).digest());
@@ -64,6 +65,7 @@ export function createApp(options:AppOptions={}) {
   });
   app.get('/api/health',(req,res)=>{
     const c=config();const health:Health={version:'0.1.0',model:c.model,...connectionStatus(),aiEnabled:c.aiEnabled,trialMode:c.key?'live':c.demoMode?'scripted-demo':'unavailable',browserInstalled:existsSync(chromium.executablePath()),demoUrl:`${demoOrigin()}/demo/broken/`,fixedDemoUrl:`${demoOrigin()}/demo/fixed/`,demoAvailable:!!options.demoRenderer||existsSync(demoPath()),activeJobs:jobs.active,queuedJobs:jobs.pending,needsAuth:!authorised(req)};
+    if(authorised(req))health.budget=budgetStatus();
     res.json(health);
   });
   app.post('/api/auth',(req,res)=>{
@@ -72,6 +74,7 @@ export function createApp(options:AppOptions={}) {
     res.cookie('op_session',sessionValue(),{httpOnly:true,sameSite:'strict',secure:req.secure,maxAge:8*3600000,path:'/'});res.json({ok:true});
   });
   app.use('/api',(req,res,next)=>{if(!authorised(req)){res.status(401).json({error:'This installation requires its access token.'});return;}next();});
+  app.get('/api/budget',(_req,res)=>res.json(budgetStatus()));
   app.post('/api/connection/test',async(_req,res)=>{
     if(!config().key){res.status(409).json({error:'Add NEBIUS_API_KEY to the server environment or .env file first.'});return;}
     try{res.json(await verifyConnection());}catch(error){res.status(502).json({error:readableModelError(error)});}

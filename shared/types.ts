@@ -96,6 +96,7 @@ export interface InferenceRecord {
   durationMs: number;
   status: 'succeeded' | 'failed';
   usage?: { inputTokens: number; outputTokens: number; totalTokens: number };
+  reservedUsd?: number;
   error?: string;
 }
 export interface Audit {
@@ -177,6 +178,17 @@ export interface Health {
   activeJobs: number;
   queuedJobs: number;
   needsAuth: boolean;
+  budget?: BudgetStatus;
+}
+
+export interface BudgetStatus {
+  limitUsd: number;
+  reservedUsd: number;
+  estimatedUsageUsd: number;
+  calls: number;
+  blocked: boolean;
+  message: string;
+  scope: string;
 }
 
 export interface AuditSummary {

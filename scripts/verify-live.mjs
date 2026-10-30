@@ -54,6 +54,8 @@ try {
   if (health.ai === 'unconfigured') throw new Error('Add NEBIUS_API_KEY to .env before live verification. No inference was attempted.');
   if (!health.browserInstalled || !health.demoAvailable) throw new Error('Install Chromium and build the demo before live verification.');
   if (!/^nvidia\//i.test(health.model)) throw new Error('Select an account-supported NVIDIA model in NEBIUS_MODEL first.');
+  report.budgetBefore = await request('/api/budget');
+  if (report.budgetBefore.blocked || report.budgetBefore.limitUsd > 1) throw new Error('The bounded $1 application budget must be active before live verification.');
   console.log(`Verifying ${health.model} through the local application. This uses real Token Factory credits.`);
   report.connection = await request('/api/connection/test', {});
   verifyRecords(report.connection.inference, 'Connection test');
@@ -84,6 +86,7 @@ try {
   console.error(report.error);
   process.exitCode = 1;
 } finally {
+  report.budgetAfter = await request('/api/budget').catch(() => undefined);
   await save();
   console.log(`Private verification report: ${filename}`);
 }

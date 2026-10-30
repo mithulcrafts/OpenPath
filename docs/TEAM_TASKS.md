@@ -17,7 +17,7 @@ The assistant working with Mithul should implement Mithul's tasks. Rohinth can w
 
 ## Mithul: implementation checklist
 
-Status on 30 October 2026: Rohinth's published UI/demo milestones are integrated. The full build, 36 unit/API/model-protocol tests, nine Chromium tests and credit-free production verification pass. Server-owned installation login, protected hosting support, audit/task comparisons, exports and restart persistence are verified locally. NVIDIA review/action code and inference records are implemented, but live inference remains unverified until activated access is available. `npm run verify:live` captures actual model outcomes; `npm run verify:offline` explicitly disables all model calls. Remaining frontend presentation and public hosting work are tracked in `docs/INTEGRATION_STATUS.md`.
+Status on 30 October 2026: Rohinth's published UI/demo milestones are integrated. The full build, 44 unit/API/model-protocol/budget tests, nine Chromium tests and credit-free production verification pass. Server-owned installation login, protected hosting support, audit/task comparisons, exports and restart persistence are verified locally. Live NVIDIA structured reviews and browser actions are verified on Nebius; see `docs/LIVE_VERIFICATION.md`. A persistent USD 1 application cap protects credits. `npm run verify:live` captures actual model outcomes; `npm run verify:offline` explicitly disables all model calls. Remaining frontend presentation and public hosting work are tracked in `docs/INTEGRATION_STATUS.md`.
 
 ### M1. Backend foundation
 
@@ -39,11 +39,11 @@ Status on 30 October 2026: Rohinth's published UI/demo milestones are integrated
 
 ### M3. NVIDIA recommendations and developer export
 
-- [ ] Verify actual Nemotron tool calling on Nebius.
-- [ ] Verify live structured product analysis and recommendations; implementation is ready.
+- [x] Verify actual Nemotron tool calling on Nebius.
+- [x] Verify live structured product analysis and recommendations; see `LIVE_VERIFICATION.md`.
 - [x] Reject invented finding IDs and label model failures honestly in the implementation.
 - [x] Export a Markdown fix brief with verification steps.
-- [ ] Push the working inference/export milestone.
+- [x] Push the working inference/export milestone.
 
 ### M4. Browser trial and independent checks
 
@@ -64,6 +64,8 @@ Status on 30 October 2026: Rohinth's published UI/demo milestones are integrated
 - [ ] Push the release milestone.
 
 ## Rohinth: implementation checklist
+
+Review on 30 October: the published foundation and demo work, but the report history, comparisons, grouped checks and step timeline are not implemented yet. See `ROHINTH_HANDOFF.md` for the prioritized remaining assignment. These finish existing scope rather than adding new features. Do not mark UI work complete based on backend endpoints alone.
 
 ### R1. Interface foundation
 

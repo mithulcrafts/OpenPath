@@ -49,11 +49,17 @@ Protected installations now redirect `/` to a server-owned `/login` page. Its fo
 
 Runs a minimal live tool-calling check. Returns `{ "ok": true, "inference": [...] }` on verified success; otherwise the standard error response. Read health again for the updated state. The added `inference` array is backward-compatible with clients that read only `ok`.
 
-### Inference records
+### `GET /api/budget`
+
+Authenticated, read-only spending status: `{limitUsd, reservedUsd, estimatedUsageUsd, calls, blocked, message, scope}`. The same object appears as optional `health.budget` for authorized callers. `reservedUsd` is the conservative amount reserved before requests, not the provider bill; `estimatedUsageUsd` uses reported tokens and the checked rates. Missing usage stays fully reserved. The installation cap defaults to USD 1 and cannot be raised above USD 1 through the environment. See `LIVE_VERIFICATION.md` for scope and persistence requirements. Disable paid actions when `blocked`; reading reports and deterministic audits remains available. Never call the connection test automatically during polling.
+
+### Inference record fields
 
 Audits and task runs also include optional `inference[]`, populated only by actual SDK calls. Each record contains `provider` (`nebius` or `custom`), `endpointOrigin`, `requestedModel`, optional `responseModel`, response/request IDs when supplied, tool name, time, duration, status, optional reported token usage, and a sanitized error. See `InferenceRecord` in `shared/types.ts`.
 
 These records never contain API keys, authorization headers, prompts or complete model responses. They are application observations, not independent provider attestations. Local mock tests are classified as `custom`; scripted runs have no inference records. Missing token usage is unknown, not zero.
+
+Paid call records also include optional `reservedUsd`. Unknown external providers are rejected by the spending policy; loopback fake providers remain available for credit-free tests.
 
 The queued model name is retained for each job. Credentials and endpoint settings are captured when execution starts and remain fixed during that job. Editing `.env` does not retroactively verify new credentials or change an in-progress run's model. A comparison still needs manual review of recorded provider/response-model metadata; matching requested model names alone do not establish equivalent provider deployments.
 
