@@ -37,6 +37,10 @@ Audit `http://127.0.0.1:4173/demo/broken/`, review its findings, then run the ca
 
 With no key and `OPENPATH_DEMO_MODE=true`, this storefront uses an explicitly labelled scripted simulator. It makes no model calls. Public-site trials require live inference.
 
+### Real-world demo: NVIDIA
+
+For a live public-site walkthrough, enter `https://www.nvidia.com/` in the URL field and click **Run audit**. OpenPath follows same-origin links, captures rendered-page evidence, and sends the observed findings to `nvidia/Nemotron-3_5-Lightning` through Nebius. The public-site task panel is browsing-only: provide a goal and an independent visible-text or URL condition, and do not use login, forms, checkout or payments. Results can vary as the public site changes; use the saved report from the run when presenting the demo.
+
 ## NVIDIA and Nebius
 
 The backend calls `nvidia/Nemotron-3_5-Lightning` through the OpenAI-compatible Nebius Token Factory API. Nemotron reviews observed findings and chooses browser actions; Playwright collects evidence and executes validated actions. Separate checks determine task success.
