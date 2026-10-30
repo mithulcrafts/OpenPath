@@ -85,6 +85,38 @@ test('a real browser action passes only after the server cart state matches',asy
   assert(attempt.trace);assert((await stat(path.join(artifactDir(attempt.id),'trace.zip'))).size>1000);
 });
 
+test('the default browser runner calls the SDK with its queued model and persists inference metadata',async()=>{
+  const saved={NEBIUS_API_KEY:process.env.NEBIUS_API_KEY,NEBIUS_BASE_URL:process.env.NEBIUS_BASE_URL,NEBIUS_MODEL:process.env.NEBIUS_MODEL};
+  const models:string[]=[];
+  const provider=http.createServer(async(req,res)=>{
+    const chunks:Buffer[]=[];for await(const chunk of req)chunks.push(Buffer.from(chunk));
+    const body=JSON.parse(Buffer.concat(chunks).toString());models.push(body.model);
+    const observation=JSON.parse(body.messages[1].content) as {controls:{id:string;name:string}[]};
+    const button=observation.controls.find(control=>control.name==='Add blue medium tee to cart');
+    assert(button,'The model must receive the current semantic controls.');
+    res.writeHead(200,{'Content-Type':'application/json'});
+    res.end(JSON.stringify({id:'local-browser-test',model:body.model,choices:[{index:0,finish_reason:'tool_calls',message:{role:'assistant',content:null,tool_calls:[{id:'local-action',type:'function',function:{name:'browser_action',arguments:JSON.stringify({action:'click',elementId:button.id})}}]}}]}));
+  });
+  await new Promise<void>(resolve=>provider.listen(0,'127.0.0.1',resolve));
+  const address=provider.address();assert(address&&typeof address!=='string');
+  try{
+    process.env.NEBIUS_API_KEY='local-browser-test-key';
+    process.env.NEBIUS_BASE_URL=`http://127.0.0.1:${address.port}/v1/`;
+    process.env.NEBIUS_MODEL='nvidia/model-changed-after-queueing';
+    const attempt=run();attempt.model='nvidia/model-selected-at-queueing';
+    await executeRun(attempt);
+    assert.equal(attempt.outcome,'completed',attempt.explanation);
+    assert.deepEqual(models,['nvidia/model-selected-at-queueing']);
+    assert.equal(attempt.inference?.[0].status,'succeeded');
+    assert.equal(attempt.inference?.[0].provider,'custom');
+    assert.equal(attempt.inference?.[0].responseId,'local-browser-test');
+    assert.equal(attempt.inference?.[0].usage,undefined,'Missing usage must not be invented.');
+  }finally{
+    provider.closeAllConnections();await new Promise<void>(resolve=>provider.close(()=>resolve()));
+    for(const [name,value] of Object.entries(saved)){if(value===undefined)delete process.env[name];else process.env[name]=value;}
+  }
+});
+
 test('the shipped storefront exposes an unnamed decorative button and the fixed variant names it',async()=>{
   useStorefront=true;
   try{
@@ -105,6 +137,7 @@ test('the shipped offline demo completes the real cart flow and explicitly discl
     await executeRun(attempt);
     assert.equal(attempt.outcome,'completed',JSON.stringify({explanation:attempt.explanation,steps:attempt.steps}));
     assert.match(attempt.explanation,/Scripted demo only; no NVIDIA model was called/);
+    assert.equal(attempt.inference?.length||0,0,'Scripted runs must not fabricate inference records.');
     assert(attempt.checks.every(check=>check.passed));
   }finally{useStorefront=false;}
 });

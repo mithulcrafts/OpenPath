@@ -11,6 +11,7 @@
     "start": "node --import ./scripts/production.mjs dist/server/index.js",
     "test": "tsx --test test/*.test.ts",
     "test:browser": "tsx --test test/browser.integration.ts",
+    "verify:live": "node scripts/verify-live.mjs",
     "test:e2e": "playwright test",
     "browser:install": "node scripts/install-browser.mjs"
   },

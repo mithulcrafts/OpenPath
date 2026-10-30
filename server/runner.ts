@@ -4,7 +4,7 @@ import type { BrowserContext, Page } from 'playwright';
 import type { Assertion, AssertionResult, TaskRun } from '../shared/types.js';
 import { artifactDir, saveRun } from './store.js';
 import { makeContext, observePage, redactError } from './browser.js';
-import { chooseAction, readableModelError, type AgentAction } from './model.js';
+import { chooseAction, createModelSession, readableModelError, type AgentAction } from './model.js';
 import { demoOrigin, isDemoUrl } from './config.js';
 import { readDemoCart } from './demo-api.js';
 
@@ -61,6 +61,7 @@ export async function executeRun(run: TaskRun, options: { decide?: typeof choose
   // Keep the queued mode stable even if credentials change while a job waits.
   const scripted = !options.decide && run.model === 'openpath-demo-simulator';
   const decide = options.decide || (scripted ? demoDecide : chooseAction);
+  const session = createModelSession(run.model, record => (run.inference ||= []).push(record));
   let context: BrowserContext | undefined;
   const started = Date.now();
   const deadline = started + run.maxDurationMs;
@@ -90,7 +91,7 @@ export async function executeRun(run: TaskRun, options: { decide?: typeof choose
       const stepStarted = Date.now();
       let action: AgentAction;
       try {
-        action = await decide(run.goal,page.url(),observation,run.steps.map(s => ({action:s.action,result:s.result})),deadline-Date.now());
+        action = await decide(run.goal,page.url(),observation,run.steps.map(s => ({action:s.action,result:s.result})),deadline-Date.now(),session);
         validateAction(action,observation.controls);
       } catch (error) {
         const invalid = error instanceof Error && /selected element|requires a value|disabled/.test(error.message);
@@ -146,7 +147,7 @@ export async function executeRun(run: TaskRun, options: { decide?: typeof choose
     run.trace=`/api/artifacts/${run.id}/trace.zip`;
   } catch (error) {
     run.outcome='inconclusive';run.cause='infrastructure';
-    run.explanation=error instanceof Error ? error.message.split('\n')[0].slice(0,350) : 'The browser run could not complete.';
+    run.explanation=error instanceof Error ? redactError(error.message).split('\n')[0].slice(0,350) : 'The browser run could not complete.';
   } finally {
     await context?.close().catch(() => {});
     if(scripted) run.explanation=`Scripted demo only; no NVIDIA model was called. ${run.explanation}`;

@@ -17,7 +17,7 @@ The assistant working with Mithul should implement Mithul's tasks. Rohinth can w
 
 ## Mithul: implementation checklist
 
-Status on 30 October 2026: the initial UI/demo is integrated and the full build passes, along with 17 unit/API tests and seven real-Chromium integration tests. NVIDIA review/action code is implemented but live inference is unverified until activated Nebius access and a key are available. Offline trials explicitly identify scripted decisions. Remaining frontend work is in `docs/INTEGRATION_STATUS.md`; public deployment remains unverified.
+Status on 30 October 2026: the initial UI/demo and Rohinth's scope/trial improvements are integrated. The full build passes, along with 26 unit/API/model-protocol tests and eight real-Chromium integration tests. NVIDIA review/action code and inference records are implemented, but live inference is unverified until activated Nebius access and a key are available. `npm run verify:live` captures actual review and paired-trial outcomes once access is ready. Offline trials explicitly identify scripted decisions. Remaining frontend work is in `docs/INTEGRATION_STATUS.md`; public deployment remains unverified.
 
 ### M1. Backend foundation
 

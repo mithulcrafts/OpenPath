@@ -41,7 +41,15 @@ Body: `{ "token": "installation access token" }`. Success: `{ "ok": true }` and 
 
 ### `POST /api/connection/test`
 
-Runs a minimal live tool-calling check. Return `{ "ok": true }` on verified success; otherwise the standard error response. Read health again for the updated state.
+Runs a minimal live tool-calling check. Returns `{ "ok": true, "inference": [...] }` on verified success; otherwise the standard error response. Read health again for the updated state. The added `inference` array is backward-compatible with clients that read only `ok`.
+
+### Inference records
+
+Audits and task runs also include optional `inference[]`, populated only by actual SDK calls. Each record contains `provider` (`nebius` or `custom`), `endpointOrigin`, `requestedModel`, optional `responseModel`, response/request IDs when supplied, tool name, time, duration, status, optional reported token usage, and a sanitized error. See `InferenceRecord` in `shared/types.ts`.
+
+These records never contain API keys, authorization headers, prompts or complete model responses. They are application observations, not independent provider attestations. Local mock tests are classified as `custom`; scripted runs have no inference records. Missing token usage is unknown, not zero.
+
+The queued model name is retained for each job. Credentials and endpoint settings are captured when execution starts and remain fixed during that job. Editing `.env` does not retroactively verify new credentials or change an in-progress run's model. A comparison still needs manual review of recorded provider/response-model metadata; matching requested model names alone do not establish equivalent provider deployments.
 
 ## Audits
 

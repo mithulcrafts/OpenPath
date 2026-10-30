@@ -82,6 +82,22 @@ export interface CheckResult {
 }
 
 export interface AuditEvent { time: string; message: string; }
+// Metadata from real SDK calls only. Never store API keys or model prompts here.
+export interface InferenceRecord {
+  id: string;
+  provider: 'nebius' | 'custom';
+  endpointOrigin: string;
+  requestedModel: string;
+  responseModel?: string;
+  responseId?: string;
+  requestId?: string;
+  tool: string;
+  startedAt: string;
+  durationMs: number;
+  status: 'succeeded' | 'failed';
+  usage?: { inputTokens: number; outputTokens: number; totalTokens: number };
+  error?: string;
+}
 export interface Audit {
   id: string;
   url: string;
@@ -98,6 +114,7 @@ export interface Audit {
   summary: string;
   suggestedTask?: string;
   model: { mode: 'pending' | 'rules' | 'nemotron'; name: string; note: string };
+  inference?: InferenceRecord[];
   limitations: string[];
   error?: string;
   isDemo: boolean;
@@ -137,6 +154,7 @@ export interface TaskRun {
   checks: AssertionResult[];
   explanation: string;
   model: string;
+  inference?: InferenceRecord[];
   profile: 'rendered-dom';
   promptVersion: string;
   maxSteps: number;

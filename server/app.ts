@@ -69,7 +69,7 @@ export function createApp(options:AppOptions={}) {
   app.use('/api',(req,res,next)=>{if(!authorised(req)){res.status(401).json({error:'This installation requires its access token.'});return;}next();});
   app.post('/api/connection/test',async(_req,res)=>{
     if(!config().key){res.status(409).json({error:'Add NEBIUS_API_KEY to the server environment or .env file first.'});return;}
-    try{await verifyConnection();res.json({ok:true});}catch(error){res.status(502).json({error:readableModelError(error)});}
+    try{res.json(await verifyConnection());}catch(error){res.status(502).json({error:readableModelError(error)});}
   });
   app.get('/api/audits',async(_req,res)=>res.json({audits:await listAudits()}));
   app.post('/api/audits',async(req,res)=>{

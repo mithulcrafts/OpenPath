@@ -7,7 +7,7 @@ import { artifactDir, saveAudit } from './store.js';
 import { makeContext, observePage, watchErrors } from './browser.js';
 import { parseHtml, inspectPages, summariseRules } from './checks.js';
 import { safeFetchText } from './network.js';
-import { readableModelError, reviewAudit } from './model.js';
+import { createModelSession, modelEndpoint, readableModelError, reviewAudit } from './model.js';
 
 export async function auditEvent(audit: Audit, progress: number, message: string) {
   audit.progress = progress; audit.events.push({ time: new Date().toISOString(), message }); await saveAudit(audit);
@@ -24,6 +24,7 @@ function nextLinks(page: PageEvidence, origin: string) {
 }
 
 export async function executeAudit(audit: Audit, options: { useAI?: boolean } = {}) {
+  const session = createModelSession(audit.model.name, record => (audit.inference ||= []).push(record));
   let context: BrowserContext | undefined;
   const dir = artifactDir(audit.id);
   const deadline = Date.now() + 150_000;
@@ -81,22 +82,22 @@ export async function executeAudit(audit: Audit, options: { useAI?: boolean } = 
     audit.summary = summariseRules(audit);
     audit.status = 'analyzing';
     await auditEvent(audit, 72, 'Checking discovery, readable content, controls and integration paths.');
-    if (options.useAI !== false && config().key && audit.pages.some(p => !p.error)) {
+    if (options.useAI !== false && session.settings.key && audit.pages.some(p => !p.error)) {
       await auditEvent(audit, 83, 'Nemotron is reviewing the evidence and proposing changes.');
       try {
-        const review = await reviewAudit(audit);
+        const review = await reviewAudit(audit, session);
         audit.summary = review.overview;
         audit.suggestedTask = review.suggestedTask;
         for (const suggestion of review.recommendations) {
           const finding = audit.findings.find(f => f.id === suggestion.findingId)!;
           finding.impact = suggestion.impact; finding.fix = suggestion.fix; finding.verification = suggestion.verification; finding.source = 'nemotron';
         }
-        audit.model = { mode:'nemotron',name:config().model,note:'Recommendations reviewed by NVIDIA Nemotron on Nebius. Observations and check results come from the scanner.' };
+        audit.model = { mode:'nemotron',name:session.settings.model,note:`Recommendations reviewed by ${session.settings.model} on ${modelEndpoint(session.settings).provider === 'nebius' ? 'Nebius' : 'the configured custom endpoint'}. Observations and check results come from the scanner.` };
       } catch (error) {
-        audit.model = {mode:'rules',name:config().model,note:`Evidence-based rule results are shown. NVIDIA review was unavailable: ${readableModelError(error)}`};
+        audit.model = {mode:'rules',name:session.settings.model,note:`Evidence-based rule results are shown. NVIDIA review was unavailable: ${readableModelError(error)}`};
       }
     } else {
-      audit.model = {mode:'rules',name:config().model,note:options.useAI === false ? 'Deterministic checks only. NVIDIA review was explicitly disabled for this internal verification run.' : config().key ? 'No successfully rendered page was available for NVIDIA review.' : 'Deterministic checks only. Configure a Nebius key to add NVIDIA analysis and browser task trials.'};
+      audit.model = {mode:'rules',name:session.settings.model,note:options.useAI === false ? 'Deterministic checks only. NVIDIA review was explicitly disabled for this internal verification run.' : session.settings.key ? 'No successfully rendered page was available for NVIDIA review.' : 'Deterministic checks only. Configure a Nebius key to add NVIDIA analysis and browser task trials.'};
     }
     if (isDemoUrl(audit.url)) audit.suggestedTask = 'Add the Everyday Tee in blue, size M, to the cart. Stop once the cart shows one item.';
     audit.status = 'complete'; audit.completedAt = new Date().toISOString();
