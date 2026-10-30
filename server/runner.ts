@@ -99,8 +99,14 @@ export async function executeRun(run: TaskRun, options: { decide?: typeof choose
           run.steps.push({index,time:new Date().toISOString(),url:page.url(),action:'Rejected invalid action',result:redactError((error as Error).message),durationMs:Date.now()-stepStarted});
           await saveRun(run); continue;
         }
+        const readable = readableModelError(error);
+        if (!invalid && sandbox && malformed < 2 && /structured|observed evidence|model response/i.test(readable)) {
+          malformed++;
+          run.steps.push({ index, time: new Date().toISOString(), url: page.url(), action: 'Rejected malformed model action', result: `${readable} Retrying with the same fresh observation.`, durationMs: Date.now() - stepStarted });
+          await saveRun(run); continue;
+        }
         run.outcome='inconclusive';run.cause=invalid?'agent':'infrastructure';
-        run.explanation=invalid ? 'The agent repeatedly selected invalid actions. This does not prove a website defect.' : readableModelError(error);
+        run.explanation=invalid ? 'The agent repeatedly selected invalid actions. This does not prove a website defect.' : readable;
         break;
       }
       if (action.action === 'finish') {
