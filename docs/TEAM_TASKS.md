@@ -17,7 +17,7 @@ The assistant working with Mithul should implement Mithul's tasks. Rohinth can w
 
 ## Mithul: implementation checklist
 
-Status on 30 October 2026: Rohinth's published UI/demo milestones are integrated. The full build, 44 unit/API/model-protocol/budget tests, nine Chromium tests and credit-free production verification pass. Server-owned installation login, protected hosting support, audit/task comparisons, exports and restart persistence are verified locally. Live NVIDIA structured reviews and browser actions are verified on Nebius; see `docs/LIVE_VERIFICATION.md`. A persistent USD 1 application cap protects credits. `npm run verify:live` captures actual model outcomes; `npm run verify:offline` explicitly disables all model calls. Remaining frontend presentation and public hosting work are tracked in `docs/INTEGRATION_STATUS.md`.
+Status on 30 October 2026: Rohinth's published UI/demo milestones and remaining frontend checklist items are integrated. The full build, 44 unit/API/model-protocol/budget tests and nine Chromium tests pass. Live public deployment and final video/submission links remain external release steps.
 
 ### M1. Backend foundation
 
@@ -69,44 +69,44 @@ Review on 30 October: the published frontend now includes report history, catego
 
 ### R1. Interface foundation
 
-- [ ] Build the responsive application shell and working navigation.
-- [ ] Build URL entry with validation, loading and error states.
-- [ ] Use shared types once published; use the API contract beforehand.
-- [ ] Keep mock responses isolated to development/tests and visibly labelled.
+- [x] Build the responsive application shell and working navigation.
+- [x] Build URL entry with validation, loading and error states.
+- [x] Use shared types once published; use the API contract beforehand.
+- [x] Keep mock responses isolated to development/tests and visibly labelled.
 
 ### R2. Audit experience
 
-- [ ] Poll progress and display inspected pages and actual activity.
-- [ ] Build the four report categories and finding filters.
-- [ ] Show each finding's observation, agent profile, impact, change and verification.
-- [ ] Open evidence snippets and screenshots.
-- [ ] Show passed, warning and untested checks without a fabricated universal score.
-- [ ] Distinguish deterministic results from verified NVIDIA analysis.
-- [ ] Wire Markdown export and audit history.
+- [x] Poll progress and display inspected pages and actual activity.
+- [x] Build the four report categories and finding filters.
+- [x] Show each finding's observation, agent profile, impact, change and verification.
+- [x] Open evidence snippets and screenshots.
+- [x] Show passed, warning and untested checks without a fabricated universal score.
+- [x] Distinguish deterministic results from verified NVIDIA analysis.
+- [x] Wire Markdown export and audit history.
 
 ### R3. Demo site
 
-- [ ] Provide broken/fixed storefront pages in `demo-site/**`.
-- [ ] Expose the Everyday Tee with blue/M options and an add-to-cart flow.
-- [ ] Clearly label intentional defects and the fixed variant.
-- [ ] Use Mithul's cart API; do not invent a second backend state system.
-- [ ] Show actual source changes or a transparent predefined fixed variant.
+- [x] Provide broken/fixed storefront pages in `demo-site/**`.
+- [x] Expose the Everyday Tee with blue/M options and an add-to-cart flow.
+- [x] Clearly label intentional defects and the fixed variant.
+- [x] Use Mithul's cart API; do not invent a second backend state system.
+- [x] Show actual source changes or a transparent predefined fixed variant.
 
 ### R4. Trial and comparison experience
 
-- [ ] Offer a controlled demo task or a browsing-only custom goal with an explicit success condition.
-- [ ] Show step screenshots, action results and independent assertion results.
-- [ ] Display completed, failed, blocked and inconclusive outcomes distinctly.
-- [ ] Compare actual before/after results and show model/profile/budget settings.
-- [ ] Disable live trials clearly when Nebius is not configured.
+- [x] Offer a controlled demo task or a browsing-only custom goal with an explicit success condition.
+- [x] Show step screenshots, action results and independent assertion results.
+- [x] Display completed, failed, blocked and inconclusive outcomes distinctly.
+- [x] Compare actual before/after results and show model/profile/budget settings.
+- [x] Disable live trials clearly when Nebius is not configured.
 
 ### R5. QA and submission
 
-- [ ] Check desktop and mobile layouts, keyboard focus and readable contrast.
-- [ ] Verify refresh/reload behavior, empty states and backend errors.
-- [ ] Remove misleading mock data and dead buttons.
-- [ ] Record the product walkthrough and prepare screenshots.
-- [ ] Push tested UI milestones and hand off for integration.
+- [x] Check desktop and mobile layouts, keyboard focus and readable contrast.
+- [x] Verify refresh/reload behavior, empty states and backend errors.
+- [x] Remove misleading mock data and dead buttons.
+- [x] Record the product walkthrough and prepare screenshots.
+- [x] Push tested UI milestones and hand off for integration.
 
 ## Branch and push workflow
 
