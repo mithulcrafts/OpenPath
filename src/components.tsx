@@ -19,12 +19,12 @@ export function HistoryPanel({ history, currentId, onOpen }: { history: AuditSum
 }
 
 export function CheckGroups({ audit }: { audit: Audit }) {
-  return <div className="check-groups">{categoryKeys.map(category => { const Icon = categoryIcons[category]; return <section className="panel category-panel" key={category}>
-    <div className="category-heading"><span className="category-icon"><Icon size={18} aria-hidden="true" /></span><div><h3>{CATEGORY_META[category].title}</h3><p className="muted">{CATEGORY_META[category].question}</p></div></div>
-    {audit.checks.filter(check => check.category === category).map(check => <details className="check-row" key={check.id}>
+  return <div className="check-groups">{categoryKeys.map((category, index) => { const Icon = categoryIcons[category]; return <section className="panel category-panel" key={category}>
+    <div className="category-heading"><div className="category-marker"><span className="category-number">{String(index + 1).padStart(2, '0')}</span><Icon size={22} aria-hidden="true" /></div><div><h3>{CATEGORY_META[category].title}</h3><p className="muted">{CATEGORY_META[category].question}</p></div></div>
+    <div className="category-checks">{audit.checks.filter(check => check.category === category).map(check => <details className="check-row" key={check.id}>
       <summary><ChevronRight className="disclosure-chevron" size={14} aria-hidden="true" /><span>{check.name}</span><span className={`check-state ${check.status}`}>{stateLabel(check.status)}</span></summary>
       <div className="check-detail"><p>{check.detail}</p><small>{check.evidenceIds.length ? `Evidence: ${check.evidenceIds.join(', ')}` : 'No issue-specific evidence recorded.'}</small></div>
-    </details>)}
+    </details>)}</div>
   </section>; })}</div>;
 }
 
@@ -70,7 +70,7 @@ export function DeveloperView({ audit }: { audit: Audit }) {
   return <><div className="findings-toolbar"><div className="filter-form"><label>Category<select value={category} onChange={e => setCategory(e.target.value as typeof category)}><option value="all">All categories</option>{categoryKeys.map(key => <option key={key} value={key}>{CATEGORY_META[key].title}</option>)}</select></label>
     <label>Severity<select value={severity} onChange={e => setSeverity(e.target.value as typeof severity)}><option value="all">All severities</option>{['high', 'medium', 'low', 'info'].map(value => <option key={value}>{value}</option>)}</select></label>
     <label>Agent profile<select value={profile} onChange={e => setProfile(e.target.value as typeof profile)}><option value="all">All profiles</option>{Object.entries(profiles).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label></div><span className="filter-count" role="status">{filtered.length} of {audit.findings.length} findings</span></div>
-    <div className="findings-list">{filtered.length ? filtered.map(finding => <article className="finding-card" key={finding.id}><div className="finding-head"><span className={`severity ${severityTone(finding.severity)}`}>{finding.severity}</span><span className="finding-id">{finding.kind === 'observed' ? 'Observed finding' : 'Recommendation'}</span><span className="source">{finding.source === 'nemotron' ? 'AI reviewed' : 'Rule observed'}</span></div>
+    <div className="findings-list">{filtered.length ? filtered.map((finding, index) => <article className="finding-card" key={finding.id}><div className="finding-head"><span className="finding-number">{String(index + 1).padStart(2, '0')}</span><span className={`severity ${severityTone(finding.severity)}`}>{finding.severity}</span><span className="finding-id">{finding.kind === 'observed' ? 'Observed finding' : 'Recommendation'}</span><span className="source">{finding.source === 'nemotron' ? 'AI reviewed' : 'Rule observed'}</span></div>
       <h3>{finding.title}</h3><p>{finding.observation}</p><p className="profile-tags">Affects: {finding.profiles.map(value => profiles[value]).join(', ')}</p>
       <div className="finding-columns"><div><h4>Why it matters</h4><p>{finding.impact}</p></div><div><h4>Proposed change</h4><p>{finding.fix}</p></div><div><h4>Verify</h4><p>{finding.verification}</p></div></div>
       {finding.code && <details><summary>Example change</summary><pre>{finding.code}</pre></details>}
@@ -81,8 +81,8 @@ export function DeveloperView({ audit }: { audit: Audit }) {
 
 export function EvidenceView({ audit }: { audit: Audit }) {
   return <div className="evidence-grid">{audit.pages.map(page => <section className="evidence-page panel" key={page.id}><div className="panel-title"><div><b>{page.title || page.url}</b><small>{new URL(page.url).pathname}</small></div><span className={`check-state ${page.status >= 400 ? 'fail' : ''}`}>HTTP {page.status || 'unknown'}</span></div>
-    {page.screenshot ? <a className="screenshot-link" href={page.screenshot} target="_blank" rel="noreferrer"><img src={page.screenshot} alt={`Captured evidence for ${page.url}`} loading="lazy" /><span>View full screenshot <ExternalLink size={12} aria-hidden="true" /></span></a> : <div className="no-shot"><Image size={24} aria-hidden="true" />No screenshot captured</div>}
-    <div className="evidence-stats"><span>{page.controls.length} controls</span><span>{page.headings.length} headings</span><span>{page.links.length} links</span></div>
+    <div className="evidence-capture"><div className="evidence-browserbar"><span className="window-dots" aria-hidden="true"><i /><i /><i /></span><span>{new URL(page.url).hostname}{new URL(page.url).pathname}</span><Globe size={12} aria-hidden="true" /></div>{page.screenshot ? <a className="screenshot-link" href={page.screenshot} target="_blank" rel="noreferrer"><img src={page.screenshot} alt={`Captured evidence for ${page.url}`} loading="lazy" /><span>View full screenshot <ExternalLink size={12} aria-hidden="true" /></span></a> : <div className="no-shot"><Image size={24} aria-hidden="true" />No screenshot captured</div>}</div>
+    <div className="evidence-stats"><span><b>{page.controls.length}</b> controls</span><span><b>{page.headings.length}</b> headings</span><span><b>{page.links.length}</b> links</span></div>
     <details className="evidence-details"><summary>Evidence for {page.id}</summary>{audit.evidence.filter(evidence => evidence.pageId === page.id).map(evidence => <article className="evidence-record" key={evidence.id}><b>{evidence.id}</b><span>{evidence.description}</span>{evidence.selector && <code>{evidence.selector}</code>}{evidence.snippet && <pre>{evidence.snippet}</pre>}</article>)}</details>
   </section>)}</div>;
 }
