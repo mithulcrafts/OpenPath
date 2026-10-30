@@ -187,7 +187,7 @@ test('capability profiles scope changes and export links, preserve unknown desti
   const mutations: string[] = [];
   page.on('request', request => { if (request.method() === 'POST') mutations.push(request.url()); });
   await page.goto(`/?audit=${audit.id}`);
-  await expect(page.getByRole('heading', { level: 1, name: 'Review plans & pricing', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Review pricing', exact: true })).toBeVisible();
   await expect(page.getByRole('complementary', { name: 'Product capabilities' }).getByRole('button', { pressed: true }).getByText('Inferred', { exact: true })).toBeVisible();
   await expect(page.getByText('Proposed changes — not implemented', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Name the pricing link', exact: true })).toBeVisible();
