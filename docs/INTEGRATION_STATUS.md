@@ -1,6 +1,6 @@
 # Integration and release status — 30 October 2026
 
-OpenPath is integrated on `main` and `mithul/backend` as the shared release commit `f082ec1`.
+OpenPath is integrated on `main` and `mithul/backend` as the shared release commit `c000e9c`.
 
 ## Shipped and verified
 
@@ -25,3 +25,4 @@ OpenPath is integrated on `main` and `mithul/backend` as the shared release comm
 5. Record the <=3-minute demo, publish the demo URL and keep the deployment available through judging.
 
 The offline simulator is limited to the controlled storefront and is clearly labelled. It is a development/demo fallback, not evidence of NVIDIA inference quality.
+
