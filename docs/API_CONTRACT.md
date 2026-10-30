@@ -24,6 +24,7 @@ This is the initial implementation contract. Shared TypeScript types will be pub
   "browserInstalled": true,
   "demoUrl": "server-provided broken-demo URL",
   "fixedDemoUrl": "server-provided fixed-demo URL",
+  "demoAvailable": false,
   "activeJobs": 0,
   "queuedJobs": 0,
   "needsAuth": false
@@ -31,6 +32,8 @@ This is the initial implementation contract. Shared TypeScript types will be pub
 ```
 
 `ai` is one of `unconfigured`, `configured`, `verified`, `error`. A present key is not a verified connection.
+
+`demoAvailable` is true only when the demo-page module is installed. Hide or disable demo actions when false.
 
 ### `POST /api/auth`
 
