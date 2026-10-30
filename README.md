@@ -1,5 +1,24 @@
 # OpenPath
 
+OpenPath is an agent-compatibility auditor for websites and web apps. Enter a public URL and it inspects how an agent can discover, understand and use the product, then produces an evidence-backed navigation playbook and a developer change brief.
+
+## Demo flow
+
+The controlled storefront is available at `http://127.0.0.1:4173/demo/broken/`. Run an audit against that URL, review the findings, then launch the task trial. The trial uses a fresh browser and independently checks the server-owned sandbox cart. `OPENPATH_DEMO_MODE=true` enables the transparent deterministic simulator for this controlled storefront when no Nebius key is configured; public-site trials still require a live key.
+
+## Product run
+
+```powershell
+npm ci
+Copy-Item .env.example .env
+npm run browser:install
+npm run dev
+```
+
+Open `http://127.0.0.1:4173/`. Set `NEBIUS_API_KEY` in `.env` to enable NVIDIA Nemotron recommendations and live browser task trials through Nebius Token Factory. The deterministic scanner remains available without a key.
+
+The implementation is intentionally bounded: it inspects up to four same-origin HTML pages, blocks private-address rebinding and state-changing requests, stores evidence artifacts locally, and never attempts login, CAPTCHA or payment actions.
+
 **Working name:** an agent-compatibility auditor for websites and web apps.
 
 Enter a product URL. OpenPath inspects how agents can discover, understand and use the product, then produces evidence-backed changes for developers. Selected browser tasks validate the findings.

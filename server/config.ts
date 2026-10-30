@@ -23,6 +23,7 @@ export function config() {
     maxPages: Math.min(4, Math.max(1, Number(env('MAX_AUDIT_PAGES', '4')) || 4)),
     modelTimeout: Math.min(60000, Math.max(5000, Number(env('MODEL_TIMEOUT_MS', '30000')) || 30000)),
     noSandbox: env('CHROMIUM_NO_SANDBOX', 'false') === 'true',
+    demoMode: env('OPENPATH_DEMO_MODE', 'true') === 'true',
   };
 }
 

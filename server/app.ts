@@ -100,7 +100,7 @@ export function createApp(options:AppOptions={}) {
     const body=runSchema.parse(req.body);const audit=await getAudit(body.auditId);
     if(!audit){res.status(404).json({error:'Audit not found.'});return;}
     if(audit.status!=='complete'){res.status(409).json({error:'Complete the audit before starting a trial.'});return;}
-    if(!config().key){res.status(409).json({error:'Configure a Nebius key to run a live NVIDIA browser trial. No simulated result will be substituted.'});return;}
+    if(!config().key && !(config().demoMode && isDemoUrl(audit.url))){res.status(409).json({error:'Configure a Nebius key to run a live NVIDIA browser trial. Demo mode is only available for the controlled storefront.'});return;}
     const demo=isDemoUrl(audit.url);
     if(!demo&&(!body.goal||!body.assertions)){res.status(400).json({error:'Provide a browsing goal and an independent URL or visible-text success condition.'});return;}
     if(!!body.goal!==!!body.assertions){res.status(400).json({error:'Provide both a goal and its success conditions, or omit both for the standard demo task.'});return;}
@@ -112,7 +112,7 @@ export function createApp(options:AppOptions={}) {
       if(!before){res.status(404).json({error:'The comparison run was not found.'});return;}
       if(before.goal!==goal||before.model!==config().model||JSON.stringify(before.assertions)!==JSON.stringify(assertions)){res.status(400).json({error:'A paired comparison must use the same goal, model and success conditions.'});return;}
     }
-    const run:TaskRun={id:newId(),auditId:audit.id,startUrl:audit.url,goal,assertions,status:'queued',createdAt:new Date().toISOString(),steps:[],checks:[],explanation:'',model:config().model,profile:'rendered-dom',promptVersion:'openpath-dom-v1',maxSteps:12,maxDurationMs:120000,compareWith:body.compareWith};
+    const run:TaskRun={id:newId(),auditId:audit.id,startUrl:audit.url,goal,assertions,status:'queued',createdAt:new Date().toISOString(),steps:[],checks:[],explanation:'',model:!config().key && config().demoMode ? 'openpath-demo-simulator' : config().model,profile:'rendered-dom',promptVersion:!config().key && config().demoMode ? 'openpath-demo-v1' : 'openpath-dom-v1',maxSteps:12,maxDurationMs:120000,compareWith:body.compareWith};
     await saveRun(run);jobs.add(()=>executeRun(run));res.status(202).json({id:run.id});
   });
   app.get('/api/artifacts/:id/:name',async(req,res)=>{

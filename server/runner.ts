@@ -5,7 +5,7 @@ import type { Assertion, AssertionResult, TaskRun } from '../shared/types.js';
 import { artifactDir, saveRun } from './store.js';
 import { makeContext, observePage, redactError } from './browser.js';
 import { chooseAction, readableModelError, type AgentAction } from './model.js';
-import { demoOrigin, isDemoUrl } from './config.js';
+import { config, demoOrigin, isDemoUrl } from './config.js';
 import { readDemoCart } from './demo-api.js';
 
 export async function evaluateAssertions(page: Page, context: BrowserContext, assertions: Assertion[], options:{cartState?:typeof readDemoCart}={}): Promise<AssertionResult[]> {
@@ -41,8 +41,24 @@ export function validateAction(action: AgentAction, controls: {id:string;disable
   if (['fill','select'].includes(action.action) && action.value === undefined) throw new Error('This action requires a value.');
 }
 
+// A transparent, deterministic fallback keeps the controlled storefront demo
+// runnable before a team configures a Nebius key. It is never used for public
+// sites and the UI labels the resulting run as openpath-demo-simulator.
+function demoDecide(_goal: string, url: string, observation: { controls: { id: string; tag: string; href?: string; name: string; type: string; disabled?: boolean; options?: { value: string }[] }[] }): AgentAction {
+  const product = observation.controls.find(c => c.tag === 'a' && c.href?.includes('/product'));
+  if (!/\/product(?:\/|$)/.test(new URL(url).pathname) && product) return { action: 'click', elementId: product.id };
+  const color = observation.controls.find(c => c.tag === 'select' && c.name.toLowerCase().includes('colour'));
+  if (color && !/blue/i.test(String(color.options?.[0]?.value))) return { action: 'select', elementId: color.id, value: 'blue' };
+  const size = observation.controls.find(c => c.tag === 'select' && c.name.toLowerCase().includes('size'));
+  if (size) return { action: 'select', elementId: size.id, value: 'M' };
+  const buttons = observation.controls.filter(c => c.tag === 'button' && !c.disabled);
+  const add = buttons.find(c => /add|cart/i.test(c.name)) || buttons.at(-1);
+  if (add) return { action: 'click', elementId: add.id };
+  return { action: 'finish' };
+}
+
 export async function executeRun(run: TaskRun, options: { decide?: typeof chooseAction } = {}) {
-  const decide = options.decide || chooseAction;
+  const decide = options.decide || (!config().key && config().demoMode && isDemoUrl(run.startUrl) ? demoDecide : chooseAction);
   let context: BrowserContext | undefined;
   const started = Date.now();
   const deadline = started + run.maxDurationMs;
