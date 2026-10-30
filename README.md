@@ -33,7 +33,7 @@ Built for the Nebius × NVIDIA Global AI Hackathon. NVIDIA Nemotron on Nebius To
 - [Frontend/backend API contract](docs/API_CONTRACT.md)
 - [Backend setup, verification and deployment runbook](docs/BACKEND_RUNBOOK.md)
 
-The backend workstream is on `mithul/backend`, with tested milestones integrated into `main`. It includes the API, shared types, audit checks, evidence storage, fix export, and bounded browser runner. Type checking, the server build, 16 unit/API tests and five real-Chromium integration tests passed on 30 October 2026. Browser tests use a declared decision stub; live NVIDIA calls still require a configured key and verification. Frontend/demo integration and deployment remain pending.
+The `mithul/backend` branch contains the complete local demo: API, shared types, audit checks, evidence storage, fix export, bounded browser runner, React report UI and controlled broken/fixed storefront. Type checking and the production build pass. Browser tests use a declared decision stub; live NVIDIA calls require a configured key and verification. Keep the hosted deployment available through judging once a public endpoint is selected.
 
 ## Backend setup
 
@@ -48,7 +48,7 @@ npm run dev
 
 PowerShell: use `Copy-Item .env.example .env` in place of `cp` if needed. Set `NEBIUS_API_KEY` in `.env` for NVIDIA analysis. The backend reads that file on requests, so adding the key does not require editing source code.
 
-Default address: `http://127.0.0.1:4173`. Check `/api/health`. Until Rohinth's frontend is integrated, `/` returns backend status rather than a product UI. Demo actions remain unavailable until `demo-site/pages.ts` exists.
+Default address: `http://127.0.0.1:4173`. Check `/api/health`. The product UI is served at `/`, and the controlled storefront is available at `/demo/broken/` and `/demo/fixed/`.
 
 ```bash
 npm run typecheck
@@ -57,7 +57,7 @@ npm run build:server
 npm run test:browser
 ```
 
-`npm run build` builds the complete product after frontend integration. Never commit `.env`. Set a strong `APP_ACCESS_TOKEN` before binding to a public interface.
+`npm run build` builds the complete product. Never commit `.env`. Set a strong `APP_ACCESS_TOKEN` before binding to a public interface.
 
 ## Collaboration
 
