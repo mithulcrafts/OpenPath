@@ -105,7 +105,7 @@ Review on 30 October: the published frontend now includes report history, catego
 - [x] Check desktop and mobile layouts, keyboard focus and readable contrast.
 - [x] Verify refresh/reload behavior, empty states and backend errors.
 - [x] Remove misleading mock data and dead buttons.
-- [x] Record the product walkthrough and prepare screenshots.
+- [x] Prepare the product walkthrough script and screenshot checklist in `docs/DEMO_SCRIPT.md`; recording remains an external submission step.
 - [x] Push tested UI milestones and hand off for integration.
 
 ## Branch and push workflow
@@ -118,4 +118,5 @@ Review on 30 October: the published frontend now includes report history, catego
 6. Merge reviewed, working milestones into `main`; resolve conflicts deliberately.
 
 Do not wait until the final hour to integrate. Complete the first real URL-to-report path before expanding task coverage.
+
 
