@@ -8,15 +8,17 @@ Built for the Nebius × NVIDIA Global AI Hackathon. NVIDIA Nemotron on Nebius To
 
 ## Start here
 
+- [Product idea and teammate briefing](IDEA.md)
 - [Implementation plan](docs/IMPLEMENTATION_PLAN.md)
 - [Mithul and Rohinth's task assignments](docs/TEAM_TASKS.md)
 - [Frontend/backend API contract](docs/API_CONTRACT.md)
+- [Backend setup, verification and deployment runbook](docs/BACKEND_RUNBOOK.md)
 
-The backend workstream is on `mithul/backend`. The first code milestone includes the API, shared types, audit checks, evidence storage, fix export, and bounded browser-runner implementation. Browser integration and live NVIDIA calls are verified separately; a configured key is never presented as proof of a successful inference call.
+The backend workstream is on `mithul/backend`, with tested milestones integrated into `main`. It includes the API, shared types, audit checks, evidence storage, fix export, and bounded browser runner. Type checking, the server build, 16 unit/API tests and five real-Chromium integration tests passed on 30 October 2026. Browser tests use a declared decision stub; live NVIDIA calls still require a configured key and verification. Frontend/demo integration and deployment remain pending.
 
 ## Backend setup
 
-Requires Node.js 22.12+ or 24+, npm and Chromium dependencies supported by Playwright.
+Use Node.js 24, npm and Chromium dependencies supported by Playwright.
 
 ```bash
 npm ci
@@ -33,6 +35,7 @@ Default address: `http://127.0.0.1:4173`. Check `/api/health`. Until Rohinth's f
 npm run typecheck
 npm test
 npm run build:server
+npm run test:browser
 ```
 
 `npm run build` builds the complete product after frontend integration. Never commit `.env`. Set a strong `APP_ACCESS_TOKEN` before binding to a public interface.

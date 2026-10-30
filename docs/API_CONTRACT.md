@@ -1,6 +1,6 @@
 # Frontend/backend contract
 
-This is the initial implementation contract. Shared TypeScript types will be published under `shared/types.ts`. Mithul owns contract changes; Rohinth owns the consuming UI.
+This is the implemented backend contract. Shared TypeScript types are published under `shared/types.ts`. Mithul owns contract changes; Rohinth owns the consuming UI.
 
 ## Common behavior
 
@@ -66,6 +66,8 @@ Returns an Audit object directly:
 - Evidence: `pages[]` and `evidence[]`.
 - Results: `findings[]`, `checks[]`, `summary`, optional `suggestedTask`, `limitations[]`.
 - Model: `{ mode: 'pending' | 'rules' | 'nemotron', name, note }`.
+
+Each page includes `rawHtmlCaptured`, indicating whether the initial document response from the browser navigation was available for comparison. A failed capture is not evidence of a JavaScript rendering barrier.
 
 Categories: `discovery`, `readability`, `interactions`, `integrations`.
 

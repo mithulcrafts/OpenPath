@@ -36,6 +36,12 @@ test('rendering gap affects HTML readers, not every browser agent',()=>{
   assert.match(finding.impact,/JavaScript-capable browser agent/);
 });
 
+test('missing document capture cannot be reported as a rendering failure',()=>{
+  const report=inspectPages([page({rawTextLength:0,rawHtmlCaptured:false,renderedTextLength:1800})]);
+  assert.equal(report.checks.find(c=>c.id==='rendering-gap')?.status,'not_tested');
+  assert(!report.findings.some(f=>f.title==='Make essential content available before scripts run'));
+});
+
 test('published invalid JSON is distinguished from absent structured data',()=>{
   const invalid=parseHtml('<html><body><h1>Product</h1><script type="application/ld+json">{"name":"Test",}</script></body></html>');
   assert.equal(invalid.structuredData.invalid,1);assert.equal(invalid.rawText,'Product');
@@ -53,8 +59,8 @@ test('tool validation rejects arbitrary execution, stale IDs and missing values'
 test('independent cart checks reject a success claim with wrong state',async()=>{
   process.env.PORT='4173';
   const fakePage={url:()=> 'http://127.0.0.1:4173/demo/fixed/product'} as Page;
-  const fakeContext={request:{get:async()=>({json:async()=>({items:[{sku:'everyday-tee',color:'black',size:'M',quantity:1}]})})}} as unknown as BrowserContext;
-  const result=await evaluateAssertions(fakePage,fakeContext,[{kind:'fixture_cart',sku:'everyday-tee',color:'blue',size:'M',quantity:1}]);
+  const fakeContext={cookies:async()=>[{name:'op_demo',value:'test-session'}]} as unknown as BrowserContext;
+  const result=await evaluateAssertions(fakePage,fakeContext,[{kind:'fixture_cart',sku:'everyday-tee',color:'blue',size:'M',quantity:1}],{cartState:()=>[{sku:'everyday-tee',color:'black',size:'M',quantity:1}]});
   assert.equal(result[0].passed,false);assert.match(result[0].actual,/black/);
 });
 

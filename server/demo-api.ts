@@ -5,6 +5,9 @@ import { z } from 'zod';
 interface Item { sku: string; color: string; size: string; quantity: number; }
 interface Cart { items: Item[]; lastUsed: number; }
 const carts = new Map<string, Cart>();
+export function readDemoCart(sessionId?:string):Item[] {
+  return sessionId ? (carts.get(sessionId)?.items || []).map(item=>({...item})) : [];
+}
 const itemSchema = z.object({
   sku:z.literal('everyday-tee'),color:z.enum(['blue','sand','black']),size:z.enum(['S','M','L','XL']),quantity:z.number().int().min(1).max(5),
 }).strict();

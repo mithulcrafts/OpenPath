@@ -6,8 +6,9 @@ import { artifactDir, saveRun } from './store.js';
 import { makeContext, observePage, redactError } from './browser.js';
 import { chooseAction, readableModelError, type AgentAction } from './model.js';
 import { demoOrigin, isDemoUrl } from './config.js';
+import { readDemoCart } from './demo-api.js';
 
-export async function evaluateAssertions(page: Page, context: BrowserContext, assertions: Assertion[]): Promise<AssertionResult[]> {
+export async function evaluateAssertions(page: Page, context: BrowserContext, assertions: Assertion[], options:{cartState?:typeof readDemoCart}={}): Promise<AssertionResult[]> {
   const results: AssertionResult[] = [];
   for (const assertion of assertions) {
     if (assertion.kind === 'url_contains') {
@@ -18,12 +19,13 @@ export async function evaluateAssertions(page: Page, context: BrowserContext, as
     } else {
       if (!isDemoUrl(page.url())) { results.push({description:'Sandbox cart matches the requested item',passed:false,actual:'The browser is outside the controlled demo.'}); continue; }
       try {
-        // This is a fixed, server-owned evaluator endpoint. It is not supplied
-        // to the acting model and it does not trust an agent's success claim.
-        const response = await context.request.get(`${demoOrigin()}/demo/api/cart`,{timeout:3000});
-        const data = await response.json() as { items?: {sku:string;color:string;size:string;quantity:number}[] };
-        const item = data.items?.find(i => i.sku === assertion.sku && i.color === assertion.color && i.size === assertion.size && i.quantity === assertion.quantity);
-        results.push({description:`Cart contains ${assertion.quantity} × ${assertion.sku}, ${assertion.color}, size ${assertion.size}`,passed:!!item,actual:JSON.stringify(data.items || [])});
+        // Read server-owned state using the isolated browser session. This is
+        // independent of page text, agent claims and the browser egress proxy.
+        const cookies=await context.cookies(`${demoOrigin()}/demo/api/cart`);
+        const session=cookies.find(cookie=>cookie.name==='op_demo')?.value;
+        const items=(options.cartState||readDemoCart)(session);
+        const item = items.find(i => i.sku === assertion.sku && i.color === assertion.color && i.size === assertion.size && i.quantity === assertion.quantity);
+        results.push({description:`Cart contains ${assertion.quantity} × ${assertion.sku}, ${assertion.color}, size ${assertion.size}`,passed:!!item,actual:JSON.stringify(items)});
       } catch { results.push({description:'Sandbox cart matches the requested item',passed:false,actual:'The independent cart state could not be read.'}); }
     }
   }
@@ -111,6 +113,11 @@ export async function executeRun(run: TaskRun, options: { decide?: typeof choose
       const screenshot = await page.screenshot({path:path.join(dir,filename),timeout:3000}).then(() => `/api/artifacts/${run.id}/${filename}`).catch(() => undefined);
       run.steps.push({index,time:new Date().toISOString(),url:page.url(),action:action.action,target:control?.name || control?.selector,result,screenshot,error:errorMessage,durationMs:Date.now()-stepStarted});
       run.checks = await evaluateAssertions(page,context,run.assertions);
+      const settleDeadline=Math.min(deadline,Date.now()+1200);
+      while(run.checks.some(check=>!check.passed)&&Date.now()<settleDeadline){
+        await new Promise(resolve=>setTimeout(resolve,100));
+        run.checks=await evaluateAssertions(page,context,run.assertions);
+      }
       await saveRun(run);
       if (run.checks.length && run.checks.every(c => c.passed)) {run.outcome='completed';run.explanation='The independent completion checks passed after this action.';break;}
     }

@@ -8,10 +8,11 @@
     "build": "npm run typecheck && vite build && npm run build:server",
     "build:server": "tsc -p tsconfig.server.json",
     "typecheck": "tsc --noEmit",
-    "start": "node dist/server/index.js",
+    "start": "node --import ./scripts/production.mjs dist/server/index.js",
     "test": "tsx --test test/*.test.ts",
+    "test:browser": "tsx --test test/browser.integration.ts",
     "test:e2e": "playwright test",
-    "browser:install": "playwright install chromium --no-shell"
+    "browser:install": "node scripts/install-browser.mjs"
   },
   "dependencies": {
     "cheerio": "1.2.0",

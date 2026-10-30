@@ -1,3 +1,4 @@
+import './runtime.js';
 import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
 import { config, demoOrigin, isDemoUrl } from './config.js';
 import { startEgressProxy } from './network.js';

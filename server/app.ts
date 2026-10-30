@@ -1,3 +1,4 @@
+import './runtime.js';
 import express, { type Request, type Response, type NextFunction } from 'express';
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { existsSync } from 'node:fs';

@@ -32,6 +32,7 @@ export interface PageEvidence {
   title: string;
   status: number;
   rawTextLength: number;
+  rawHtmlCaptured?: boolean;
   renderedTextLength: number;
   text: string;
   headings: string[];

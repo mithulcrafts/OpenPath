@@ -23,7 +23,7 @@ function nextLinks(page: PageEvidence, origin: string) {
     .sort((a,b) => b.rank-a.rank).map(l => { const u = new URL(l.href); u.hash = ''; return u.href; });
 }
 
-export async function executeAudit(audit: Audit) {
+export async function executeAudit(audit: Audit, options: { useAI?: boolean } = {}) {
   let context: BrowserContext | undefined;
   const dir = artifactDir(audit.id);
   const deadline = Date.now() + 150_000;
@@ -43,14 +43,22 @@ export async function executeAudit(audit: Audit) {
       await auditEvent(audit, 10 + index * 12, `Inspecting page ${index}: ${new URL(url).pathname}`);
       const page = await context.newPage();
       const errors = watchErrors(page);
-      const data: PageEvidence = { id:`page-${index}`,url,title:'',status:0,rawTextLength:0,renderedTextLength:0,text:'',headings:[],controls:[],links:[],structuredData:{valid:0,invalid:0,types:[]},consoleErrors:[],requestErrors:[],inspectedAt:new Date().toISOString() };
+      const data: PageEvidence = { id:`page-${index}`,url,title:'',status:0,rawTextLength:0,rawHtmlCaptured:false,renderedTextLength:0,text:'',headings:[],controls:[],links:[],structuredData:{valid:0,invalid:0,types:[]},consoleErrors:[],requestErrors:[],inspectedAt:new Date().toISOString() };
       try {
         const raw = url === first.url ? first : await safeFetchText(url);
         if (!/text\/html|application\/xhtml/i.test(raw.contentType)) {
           data.status = raw.status; data.error = 'This URL did not return an HTML page. API/document resources are recorded as links only.';
         } else {
-          const parsed = parseHtml(raw.text); data.rawTextLength = parsed.rawText.length; data.structuredData = parsed.structuredData;
           const response = await page.goto(url, { waitUntil:'domcontentloaded' });
+          // Compare rendering against this navigation's own document response.
+          // A separate HTTP client can receive another locale, bot policy or
+          // experiment variant; that difference is not evidence of JavaScript.
+          if(response){
+            try{
+              const parsed=parseHtml(await response.text());
+              data.rawTextLength=parsed.rawText.length;data.rawHtmlCaptured=true;data.structuredData=parsed.structuredData;
+            }catch{audit.limitations.push(`Initial document HTML could not be captured for ${url}; its rendering comparison is unverified.`);}
+          }
           await page.waitForLoadState('networkidle', {timeout:2500}).catch(() => {});
           const observation = await observePage(page);
           Object.assign(data, { url:page.url(),title:observation.title,text:observation.text,headings:observation.headings,controls:observation.controls,links:observation.links,renderedTextLength:observation.text.length,status:response?.status() || raw.status });
@@ -73,7 +81,7 @@ export async function executeAudit(audit: Audit) {
     audit.summary = summariseRules(audit);
     audit.status = 'analyzing';
     await auditEvent(audit, 72, 'Checking discovery, readable content, controls and integration paths.');
-    if (config().key && audit.pages.some(p => !p.error)) {
+    if (options.useAI !== false && config().key && audit.pages.some(p => !p.error)) {
       await auditEvent(audit, 83, 'Nemotron is reviewing the evidence and proposing changes.');
       try {
         const review = await reviewAudit(audit);
@@ -88,7 +96,7 @@ export async function executeAudit(audit: Audit) {
         audit.model = {mode:'rules',name:config().model,note:`Evidence-based rule results are shown. NVIDIA review was unavailable: ${readableModelError(error)}`};
       }
     } else {
-      audit.model = {mode:'rules',name:config().model,note:config().key ? 'No successfully rendered page was available for NVIDIA review.' : 'Deterministic checks only. Configure a Nebius key to add NVIDIA analysis and browser task trials.'};
+      audit.model = {mode:'rules',name:config().model,note:options.useAI === false ? 'Deterministic checks only. NVIDIA review was explicitly disabled for this internal verification run.' : config().key ? 'No successfully rendered page was available for NVIDIA review.' : 'Deterministic checks only. Configure a Nebius key to add NVIDIA analysis and browser task trials.'};
     }
     if (isDemoUrl(audit.url)) audit.suggestedTask = 'Add the Everyday Tee in blue, size M, to the cart. Stop once the cart shows one item.';
     audit.status = 'complete'; audit.completedAt = new Date().toISOString();

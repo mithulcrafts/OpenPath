@@ -17,39 +17,41 @@ The assistant working with Mithul should implement Mithul's tasks. Rohinth can w
 
 ## Mithul: implementation checklist
 
+Status on 30 October 2026: backend type checking, server build, 16 unit/API tests and five real-Chromium integration tests pass. NVIDIA review/action code is implemented but live inference is unverified until the key is configured. Browser tests use explicitly labelled decision stubs. Rohinth's UI/demo, combined application verification and deployment remain pending.
+
 ### M1. Backend foundation
 
-- [ ] Publish shared TypeScript types and the API skeleton.
-- [ ] Set up a persistent Node/Express service, local artifact storage and a bounded job queue.
-- [ ] Add configuration, honest health status and access protection for public hosting.
-- [ ] Install Chromium and verify a controlled navigation.
-- [ ] Validate targets and guard outbound connections and redirects.
-- [ ] Push the working foundation and notify Rohinth which endpoints are ready.
+- [x] Publish shared TypeScript types and the API skeleton.
+- [x] Set up a persistent Node/Express service, local artifact storage and a bounded job queue.
+- [x] Add configuration, honest health status and access protection for public hosting.
+- [x] Install Chromium and verify a controlled navigation.
+- [x] Validate targets and guard outbound connections and redirects.
+- [x] Push the working foundation and publish the endpoint handoff in the API contract.
 
 ### M2. URL-first compatibility audit
 
-- [ ] Inspect initial HTML and rendered pages, up to four pages.
-- [ ] Collect screenshots, semantic controls, page errors and evidence IDs.
-- [ ] Implement the ten checks in the plan.
-- [ ] Return a complete report with four categories and clear limitations.
-- [ ] Preserve deterministic results when model access is unavailable.
+- [x] Inspect initial HTML and rendered pages, up to four pages.
+- [x] Collect screenshots, semantic controls, page errors and evidence IDs.
+- [x] Implement the ten checks in the plan.
+- [x] Return a complete report with four categories and clear limitations.
+- [x] Preserve deterministic results when model access is unavailable.
 - [ ] Push a tested end-to-end audit milestone.
 
 ### M3. NVIDIA recommendations and developer export
 
 - [ ] Verify actual Nemotron tool calling on Nebius.
-- [ ] Generate structured, evidence-grounded product analysis and recommendations.
-- [ ] Reject invented finding IDs and label model failures honestly.
-- [ ] Export a Markdown fix brief with verification steps.
+- [ ] Verify live structured product analysis and recommendations; implementation is ready.
+- [x] Reject invented finding IDs and label model failures honestly in the implementation.
+- [x] Export a Markdown fix brief with verification steps.
 - [ ] Push the working inference/export milestone.
 
 ### M4. Browser trial and independent checks
 
-- [ ] Build the bounded rendered-DOM action loop.
-- [ ] Implement the sandbox cart API and independent evaluator.
-- [ ] Record screenshots, actions, errors, trace files and actual outcomes.
-- [ ] Handle stale IDs, action loops, timeouts, access blocks and invalid output.
-- [ ] Support fresh-context reruns and matching-settings comparisons.
+- [x] Build the bounded rendered-DOM action loop.
+- [x] Implement the sandbox cart API and independent evaluator.
+- [x] Record screenshots, actions, errors, trace files and actual outcomes.
+- [x] Handle stale IDs, action loops, timeouts, access blocks and invalid output in the implementation.
+- [x] Support fresh-context reruns and reject mismatched goals, models and assertions in comparisons.
 - [ ] Push the tested trial milestone.
 
 ### M5. Integration and release

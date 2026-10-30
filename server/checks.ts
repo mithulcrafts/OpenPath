@@ -70,9 +70,10 @@ export function inspectPages(pages: PageEvidence[]): Pick<Audit, 'checks' | 'fin
   addCheck('link-names','discovery','Navigation links are named',linkEvidence,`${linkCount} visible link(s) inspected.`,!linkCount);
 
   const renderingEvidence: string[] = [];
-  for (const p of readable) if (p.renderedTextLength > 350 && p.rawTextLength < p.renderedTextLength * 0.3) renderingEvidence.push(addEvidence(p,`Initial HTML contains ${p.rawTextLength} text characters; rendered page contains ${p.renderedTextLength}. These counts indicate a rendering gap, not semantic coverage.`));
+  for (const p of readable) if (p.rawHtmlCaptured !== false && p.renderedTextLength > 350 && p.rawTextLength < p.renderedTextLength * 0.3) renderingEvidence.push(addEvidence(p,`The navigation's initial HTML contains ${p.rawTextLength} text characters; its rendered page contains ${p.renderedTextLength}. These counts indicate a rendering gap, not semantic coverage.`));
   if (renderingEvidence.length) addFinding('readability','Make essential content available before scripts run','Some inspected pages expose substantially more text after rendering.', 'HTTP-only readers may miss information that a JavaScript-capable browser agent can access.', ['html'],renderingEvidence,'Server-render essential product descriptions and prices, or publish a documented data interface. Keep interactive behavior for browser users.','Fetch the initial HTML without running JavaScript and verify the required information is present. Also test the browser path separately.','medium');
-  addCheck('rendering-gap','readability','Initial HTML contains useful content',renderingEvidence,renderingEvidence.length ? 'Some content depends heavily on rendering.' : 'No large text-rendering gap was detected.',!readable.length);
+  const comparedPages=readable.filter(p=>p.rawHtmlCaptured!==false);
+  addCheck('rendering-gap','readability','Initial HTML contains useful content',renderingEvidence,renderingEvidence.length ? 'Some content depends heavily on rendering.' : comparedPages.length ? 'No large text-rendering gap was detected in captured document responses.' : 'The initial document could not be captured; rendering comparison is unverified.',!comparedPages.length);
 
   const structuredEvidence: string[] = []; let structuredCount = 0;
   for (const p of readable) {
