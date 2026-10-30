@@ -78,7 +78,7 @@ export async function executeRun(run: TaskRun, options: { decide?: typeof choose
     await page.screenshot({path:path.join(dir,'step-0.png'),timeout:3000});
     run.steps.push({index:0,time:new Date().toISOString(),url:page.url(),action:'Open website',result:'Fresh browser context created.',screenshot:`/api/artifacts/${run.id}/step-0.png`,durationMs:Date.now()-started});
     await saveRun(run);
-    let repeated = 0; let previousState = ''; let malformed = 0;
+    let repeated = 0; let previousState = ''; let malformed = 0; let prematureFinishes = 0;
     for (let index = 1; index <= run.maxSteps && Date.now() < deadline; index++) {
       run.checks = await evaluateAssertions(page,context,run.assertions);
       if (run.checks.length && run.checks.every(c => c.passed)) {
@@ -104,9 +104,29 @@ export async function executeRun(run: TaskRun, options: { decide?: typeof choose
         break;
       }
       if (action.action === 'finish') {
+        // A model can emit `finish` before it has actually completed the task
+        // (the live trace showed this happening after the initial page load).
+        // The independent checker is authoritative, so give the sandbox model
+        // a couple of fresh observations before recording a failed trial.
+        if (sandbox && prematureFinishes < 2) {
+          prematureFinishes++;
+          run.steps.push({
+            index,
+            time: new Date().toISOString(),
+            url: page.url(),
+            action: 'Rejected premature finish',
+            result: 'Independent completion checks are still failing. Retrying with a fresh observation.',
+            durationMs: Date.now() - stepStarted,
+          });
+          await saveRun(run);
+          continue;
+        }
         run.outcome='failed';run.cause='unknown';
         run.explanation='The agent stopped before the independent completion checks passed. Inspect the trace to distinguish site barriers from agent limitations.';break;
       }
+      // A real action is evidence of progress; allow a later transient finish
+      // to receive the same bounded retry window if the page needs to settle.
+      prematureFinishes = 0;
       const control = observation.controls.find(c => c.id === action.elementId);
       const repeatedState = JSON.stringify([page.url(),action.action,control?.name,action.value,observation.text.slice(0,5000)]);
       repeated = repeatedState === previousState ? repeated+1 : 0; previousState = repeatedState;
