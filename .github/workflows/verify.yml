@@ -1,0 +1,45 @@
+name: Verify OpenPath
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  offline-production:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run browser:install -- --with-deps
+      - run: npm run build
+      - run: npm test
+      - run: npm run test:browser
+      - run: npm run verify:offline
+      - name: Preserve controlled-demo verification evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: offline-verification
+          retention-days: 3
+          if-no-files-found: ignore
+          path: |
+            data/verification/offline-*/report.json
+            data/verification/offline-*/*.png
+            data/verification/offline-*/*-fix-kit.md

@@ -47,6 +47,8 @@ Results and controlled-demo evidence remain under the ignored `data/verification
 
 For an explicitly offline installation, set `OPENPATH_AI_ENABLED=false`. Restore it to `true` before live model verification. `OPENPATH_DEMO_MODE` separately controls the scripted storefront fallback.
 
+The `Verify OpenPath` GitHub Actions workflow repeats the build, unit/API/model tests, Chromium tests and offline production check on Ubuntu 22.04 with Node 24. It uses no provider secrets. Only generated controlled-demo reports, screenshots and Markdown briefs are uploaded, with three-day retention. A configured workflow is not a passing run; inspect the current commit's result.
+
 ### Live inference verification
 
 After account activation and key configuration, start the built application in one terminal and run this from the repository root in another:

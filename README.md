@@ -63,6 +63,8 @@ npm run verify:offline
 
 ## Collaboration
 
+The `Verify OpenPath` GitHub Actions workflow runs the production build, backend tests, Chromium tests and isolated offline verification for `main` pushes and pull requests. It needs no model key or credits and saves controlled-demo evidence for three days. Check the workflow result before treating Linux verification as complete.
+
 - **Mithul:** backend, audit engine, NVIDIA/Nebius integration, browser runner, independent verification and deployment infrastructure.
 - **Rohinth:** frontend, report experience, demo-site presentation, responsive design and visual QA.
 
