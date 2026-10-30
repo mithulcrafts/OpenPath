@@ -22,6 +22,14 @@ A subsequent public-site audit of `https://example.com` also completed with live
 
 The full local report is ignored by Git under `data/verification/live-1793369841284.json`. It contains the actual audit/run IDs, provider/model metadata, usage and comparison results. API keys and prompts are not included in inference metadata. Screenshot and trace files remain in the local data directory. Do not publish unrelated private-site audit data.
 
+## Public product inspection — 31 October 2026
+
+The updated capability workspace was verified against `https://www.apple.com/in/ipad/`. Four actual pages were captured, including the linked iPad comparison page. The scanner found three native select elements without detected associated labels (`selector-0`, `selector-1`, `selector-2`). Nemotron reviewed that observation and proposed labels for those controls. This observation does not establish that a browser agent cannot use the page.
+
+A fresh live trial navigated from the iPad page to `/in/ipad/compare/` with one model-selected click in 8,380 ms. A separate URL assertion passed. This verifies navigation only; changing the selected models and completing a comparison were not tested.
+
+The audit and trial made two successful Nebius Token Factory calls to `nvidia/Nemotron-3_5-Lightning`: one finding review and one browser action. Capability grouping and the route map use captured evidence without extra model calls. The scoped brief contains proposed changes; no Apple source was modified.
+
 ## Credit protection
 
 - `OPENPATH_AI_BUDGET_USD` defaults to 1. Values above 1 are clamped to 1; lower values are allowed.

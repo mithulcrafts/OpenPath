@@ -13,6 +13,7 @@ import { connectionStatus, readableModelError, verifyConnection } from './model.
 import { executeAudit } from './audit.js';
 import { executeRun } from './runner.js';
 import { exportFixKit } from './report.js';
+import { exportCapabilityBrief, getCapabilities } from '../shared/capabilities.js';
 import { mountDemoApi } from './demo-api.js';
 import { compareAudits, compareRuns, runSettingsMismatches } from './comparison.js';
 import { accessPage } from './access.js';
@@ -111,6 +112,14 @@ export function createApp(options:AppOptions={}) {
   app.get('/api/audits/:id/fix-kit',async(req,res)=>{
     const audit=await getAudit(String(req.params.id));if(!audit){res.status(404).json({error:'Audit not found.'});return;}
     if(!['complete','failed'].includes(audit.status)){res.status(409).json({error:'Wait for the audit to finish before exporting.'});return;}
+    if(req.query.capability !== undefined) {
+      const capability=typeof req.query.capability==='string' ? getCapabilities(audit).find(item=>item.id===req.query.capability) : undefined;
+      if(!capability){res.status(404).json({error:'Capability not found in this inspection.'});return;}
+      const profile=req.query.profile || 'browser';
+      if(profile!=='html'&&profile!=='browser'&&profile!=='api'){res.status(400).json({error:'Choose html, browser or api as the access profile.'});return;}
+      res.type('text/markdown; charset=utf-8').attachment(`openpath-${capability.id}-${profile}-brief.md`).send(exportCapabilityBrief(audit,capability,profile));
+      return;
+    }
     const before=audit.compareWith ? await getAudit(audit.compareWith) : null;
     const comparison=before?.status==='complete'&&audit.status==='complete' ? compareAudits(before,audit) : undefined;
     res.type('text/markdown; charset=utf-8').attachment(`openpath-${audit.id.slice(0,8)}-fix-kit.md`).send(exportFixKit(audit,await listRuns(audit.id),comparison));

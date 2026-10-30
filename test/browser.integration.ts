@@ -56,6 +56,20 @@ test('real Chromium observes named controls and ephemeral action IDs',async()=>{
   }finally{await context.close();}
 });
 
+test('semantic observations exclude decorative duplicate overlays and hidden ancestors',async()=>{
+  const context=await makeContext(`${origin}/demo/fixed/product`);
+  try {
+    const page=await context.newPage();
+    await page.goto(`${origin}/demo/fixed/product`);
+    await page.setContent('<h1>Product</h1><a href="/details">Read product details</a><a href="/details" aria-hidden="true" tabindex="-1" style="display:block;width:100px;height:100px"></a><div aria-hidden="true"><button>Decorative duplicate</button></div><button><span aria-hidden="true">★</span></button>');
+    const observation=await observePage(page);
+    assert.equal(observation.controls.filter(control=>control.role==='link').length,1);
+    assert.equal(observation.links.length,1);
+    assert(!observation.controls.some(control=>control.name==='Decorative duplicate'));
+    assert(observation.controls.some(control=>control.role==='button'&&!control.name),'A real unnamed control remains a finding even when its icon is decorative.');
+  } finally { await context.close(); }
+});
+
 test('real URL inspection finds defects and detects the corrected variant',async()=>{
   const beforeAudit=audit('broken');await executeAudit(beforeAudit,{useAI:false});
   assert.equal(beforeAudit.status,'complete',beforeAudit.error || 'Audit should complete');assert(beforeAudit.pages.length>=2);

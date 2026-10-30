@@ -73,7 +73,7 @@ export function DeveloperView({ audit }: { audit: Audit }) {
     <div className="findings-list">{filtered.length ? filtered.map((finding, index) => <article className="finding-card" key={finding.id}><div className="finding-head"><span className="finding-number">{String(index + 1).padStart(2, '0')}</span><span className={`severity ${severityTone(finding.severity)}`}>{finding.severity}</span><span className="finding-id">{finding.kind === 'observed' ? 'Observed finding' : 'Recommendation'}</span><span className="source">{finding.source === 'nemotron' ? 'AI reviewed' : 'Rule observed'}</span></div>
       <h3>{finding.title}</h3><p>{finding.observation}</p><p className="profile-tags">Affects: {finding.profiles.map(value => profiles[value]).join(', ')}</p>
       <div className="finding-columns"><div><h4>Why it matters</h4><p>{finding.impact}</p></div><div><h4>Proposed change</h4><p>{finding.fix}</p></div><div><h4>Verify</h4><p>{finding.verification}</p></div></div>
-      {finding.code && <details><summary>Example change</summary><pre>{finding.code}</pre></details>}
+      {finding.code && <details><summary>Generic example · adapt to captured controls</summary><pre>{finding.code}</pre></details>}
       <details className="finding-evidence"><summary>Evidence: {finding.evidenceIds.length} records</summary>{finding.evidenceIds.map(id => { const evidence = audit.evidence.find(item => item.id === id); return <div key={id}><b>{id}</b>{evidence ? <><p>{evidence.description}</p>{evidence.selector && <code>{evidence.selector}</code>}{evidence.snippet && <pre>{evidence.snippet}</pre>}{evidence.screenshot && <a href={evidence.screenshot} target="_blank" rel="noreferrer">Open screenshot <ExternalLink size={12} aria-hidden="true" /></a>}</> : <p>Evidence is unavailable.</p>}</div>; })}</details>
     </article>) : <div className="empty panel">No findings match these filters.</div>}</div>
   </>;
@@ -89,7 +89,7 @@ export function EvidenceView({ audit }: { audit: Audit }) {
 
 export function InferenceDetails({ records }: { records?: InferenceRecord[] }) {
   if (!records?.length) return <p className="muted">No model-call evidence recorded for this result.</p>;
-  return <details className="inference-details"><summary>{records.length} recorded model calls</summary><div className="inference-list">{records.map(record => <div className="inference-row" key={record.id}><b>{record.provider} · {record.status}</b><span>{record.requestedModel}</span><span>Returned: {record.responseModel || 'Not reported'} · {record.durationMs.toLocaleString()} ms</span><span>{record.usage ? `${record.usage.inputTokens.toLocaleString()} input / ${record.usage.outputTokens.toLocaleString()} output tokens` : 'Token usage not reported'}</span>{record.error && <span>{record.error}</span>}</div>)}</div></details>;
+  return <details className="inference-details"><summary>{records.length} recorded model {records.length === 1 ? 'call' : 'calls'}</summary><div className="inference-list">{records.map(record => <div className="inference-row" key={record.id}><b>{record.provider} · {record.status}</b><span>{record.requestedModel}</span><span>Returned: {record.responseModel || 'Not reported'} · {record.durationMs.toLocaleString()} ms</span><span>{record.usage ? `${record.usage.inputTokens.toLocaleString()} input / ${record.usage.outputTokens.toLocaleString()} output tokens` : 'Token usage not reported'}</span>{record.error && <span>{record.error}</span>}</div>)}</div></details>;
 }
 
 export function RunStatus({ run }: { run: TaskRun }) {

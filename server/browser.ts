@@ -69,7 +69,7 @@ const OBSERVE_SCRIPT = `(() => {
   const visible = element => {
     const rect = element.getBoundingClientRect();
     const style = getComputedStyle(element);
-    return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden' && style.display !== 'none' && !element.closest('[inert]');
+    return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden' && style.display !== 'none' && !element.closest('[inert],[hidden],[aria-hidden="true"]');
   };
   const name = element => {
     const labelled = element.getAttribute('aria-labelledby');

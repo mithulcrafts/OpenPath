@@ -124,6 +124,8 @@ Never render page snippets, model text or code examples as raw HTML. Screenshots
 
 Download a UTF-8 Markdown file. The endpoint includes scope, findings, evidence, proposed changes and verification steps.
 
+Optional query: `?capability=compare-products&profile=browser`. Capability IDs come from `getCapabilities(audit)` in `shared/capabilities.ts`; profiles are `html`, `browser` and `api`. This exports the selected capability's observed route, scoped evidence, unknowns, proposed changes and verification plan. Unrecognized IDs or profiles return 400. Omitting the query preserves the full inspection export.
+
 ## Browser trials
 
 ### `POST /api/runs`

@@ -13,14 +13,40 @@ export async function auditEvent(audit: Audit, progress: number, message: string
   audit.progress = progress; audit.events.push({ time: new Date().toISOString(), message }); await saveAudit(audit);
 }
 
-function nextLinks(page: PageEvidence, origin: string) {
-  return page.links.filter(l => {
+function inspectionUrlKey(input: string): string {
+  const url = new URL(input);
+  url.hash = '';
+  url.pathname = url.pathname.replace(/\/+$/, '') || '/';
+  return url.href;
+}
+
+/** Keep a bounded product inspection focused instead of following global nav first. */
+export function nextInspectionLinks(page: PageEvidence, origin: string, focusUrl = page.url): string[] {
+  const focusPath = new URL(focusUrl).pathname.replace(/\/+$/, '');
+  const current = inspectionUrlKey(page.url);
+  const candidates = new Map<string, { url: string; rank: number; order: number }>();
+  for (const [order, link] of page.links.entries()) {
     try {
-      const u = new URL(l.href);
-      return u.origin === origin && !/\.(pdf|zip|png|jpe?g|gif|svg|mp4|exe)$/i.test(u.pathname) && !/logout|signout|delete|remove|unsubscribe|checkout|payment/i.test(u.pathname);
-    } catch { return false; }
-  }).map(l => ({ ...l, rank: /pricing|product|shop|features/i.test(l.text+' '+l.href) ? 3 : /docs|api|developer|contact|about/i.test(l.text+' '+l.href) ? 2 : 1 }))
-    .sort((a,b) => b.rank-a.rank).map(l => { const u = new URL(l.href); u.hash = ''; return u.href; });
+      const url = new URL(link.href, page.url);
+      if (!['http:', 'https:'].includes(url.protocol) || url.origin !== origin || url.username || url.password) continue;
+      const pathname = decodeURIComponent(url.pathname);
+      if (/\.(?:pdf|zip|tar|gz|rar|7z|png|jpe?g|gif|svg|webp|ico|mp[34]|webm|mov|wav|exe|dmg|apk|docx?|xlsx?|pptx?|json|xml|woff2?)$/i.test(pathname)) continue;
+      if (/log[-_]?out|sign[-_]?out|delete|remove|unsubscribe|checkout|payment/i.test(pathname)) continue;
+      url.hash = '';
+      const key = inspectionUrlKey(url.href);
+      if (key === current) continue;
+      const scoped = !!focusPath && pathname.startsWith(`${focusPath}/`);
+      const signal = `${link.text} ${pathname}`;
+      const intent = /\b(?:compar(?:e|ison)|pricing|plans|specs|specifications)\b/i.test(signal) ? 40
+        : /\b(?:products?|features?|docs|documentation|api|developers?|integrations?)\b/i.test(signal) ? 20
+        : /\b(?:shop|store|catalog(?:ue)?)\b/i.test(signal) ? 10
+        : /\b(?:contact|about)\b/i.test(signal) ? 5 : 0;
+      const rank = (scoped ? 100 : 0) + intent;
+      const previous = candidates.get(key);
+      if (!previous || rank > previous.rank) candidates.set(key, { url: url.href, rank, order: previous?.order ?? order });
+    } catch { /* Malformed URLs and encodings are not inspection candidates. */ }
+  }
+  return [...candidates.values()].sort((a, b) => b.rank - a.rank || a.order - b.order).map(item => item.url);
 }
 
 export async function executeAudit(audit: Audit, options: { useAI?: boolean } = {}) {
@@ -38,8 +64,8 @@ export async function executeAudit(audit: Audit, options: { useAI?: boolean } = 
     const origin = new URL(first.url).origin;
     while (queue.length && audit.pages.length < config().maxPages && Date.now() < deadline) {
       const url = queue.shift()!;
-      if (visited.has(url)) continue;
-      visited.add(url);
+      if (visited.has(inspectionUrlKey(url))) continue;
+      visited.add(inspectionUrlKey(url));
       const index = audit.pages.length + 1;
       await auditEvent(audit, 10 + index * 12, `Inspecting page ${index}: ${new URL(url).pathname}`);
       const page = await context.newPage();
@@ -63,11 +89,12 @@ export async function executeAudit(audit: Audit, options: { useAI?: boolean } = 
           await page.waitForLoadState('networkidle', {timeout:2500}).catch(() => {});
           const observation = await observePage(page);
           Object.assign(data, { url:page.url(),title:observation.title,text:observation.text,headings:observation.headings,controls:observation.controls,links:observation.links,renderedTextLength:observation.text.length,status:response?.status() || raw.status });
+          visited.add(inspectionUrlKey(data.url));
           const filename = `page-${index}.png`;
           await page.screenshot({ path:path.join(dir,filename), fullPage:false, timeout:5000 });
           data.screenshot = `/api/artifacts/${audit.id}/${filename}`;
           await writeFile(path.join(dir,`page-${index}-observation.json`),JSON.stringify({url:data.url, ...observation},null,2));
-          queue.push(...nextLinks(data, origin).filter(l => !visited.has(l)));
+          queue.push(...nextInspectionLinks(data, origin, first.url).filter(link => !visited.has(inspectionUrlKey(link)) && !queue.some(queued => inspectionUrlKey(queued) === inspectionUrlKey(link))));
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Page inspection failed.';

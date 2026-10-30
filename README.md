@@ -5,7 +5,9 @@ OpenPath helps developers make websites usable by AI agents. Enter a URL to insp
 ## What it does
 
 - Inspects up to four same-origin pages for discovery, readability, interaction and integration issues.
+- Suggests product capabilities from captured content and maps their observed page links, unknowns and proposed changes.
 - Connects findings to page excerpts, controls and screenshots, with fixes scoped to HTML readers, browser agents or API clients.
+- Exports an implementation brief for a selected capability and agent profile, while keeping the full inspection available.
 - Runs bounded browser tasks and checks their outcomes independently of the model's own claims.
 - Saves reports and task timelines, compares recorded results, and exports a Markdown change brief.
 
@@ -46,6 +48,8 @@ For a live public-site walkthrough, enter `https://www.nvidia.com/` in the URL f
 The backend calls `nvidia/Nemotron-3_5-Lightning` through the OpenAI-compatible Nebius Token Factory API. Nemotron reviews observed findings and chooses browser actions; Playwright collects evidence and executes validated actions. Separate checks determine task success.
 
 Token Factory provides managed inference; the project does not provision GPU servers or fine-tune a model. See the [live verification results](docs/LIVE_VERIFICATION.md) for measured outcomes and limitations.
+
+Capability suggestions use deterministic signals from captured pages. A map shows inspected hyperlinks, not a completed agent task. The **Verify** workspace runs a separately declared task and checks its expected URL, visible text or controlled storefront state.
 
 ## Limits and spending
 
