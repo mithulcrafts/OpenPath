@@ -20,7 +20,11 @@ Tested milestones are integrated on `main` and `mithul/backend`. Use the latest 
 - `npm run typecheck`, `npm run build`, 44 unit/API/model-protocol/budget tests and nine real-Chromium integration tests pass.
 - The isolated offline production verifier passes through both audits and trials, image/trace/export downloads, comparisons, a public-site audit and restart persistence. No AI provider is called.
 
-## Frontend integration complete`r`n`r`nThe UI consumes the mode, inference, comparison and evidence APIs. It exposes grouped check states, agent profiles, audit history, evidence details, custom assertions, before/after comparisons and the browser step timeline.`r`n`r`n## External release steps
+## Frontend integration complete
+
+The UI consumes the mode, inference, comparison and evidence APIs. It exposes grouped check states, agent profiles, audit history, evidence details, custom assertions, before/after comparisons and the browser step timeline.
+
+## External release steps
 
 Live connection, both NVIDIA reviews and both browser task attempts were verified locally on 30 October; see `LIVE_VERIFICATION.md`. Local implementation and verification are complete; public hosting is the remaining external release action. Spending protection caps this installation at USD 1 using persistent conservative reservations.
 
@@ -33,6 +37,7 @@ Live connection, both NVIDIA reviews and both browser task attempts were verifie
 The offline simulator is limited to the controlled storefront and is clearly labelled. It is a development/demo fallback, not evidence of NVIDIA inference quality.
 
 Docker Desktop's local engine was unavailable in this workspace. Local production startup and the full offline verifier pass; container hosting and a public deployment still require a selected host.
+
 
 
 
