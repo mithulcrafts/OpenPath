@@ -26,7 +26,7 @@ const severityTone = (severity: Finding['severity']) => severity === 'high' ? 'd
 function App() {
   const [health, setHealth] = useState<Health | null>(null);
   const [history, setHistory] = useState<AuditSummary[]>([]);
-  const [url, setUrl] = useState(DEMO_URL);
+  const [url, setUrl] = useState('');
   const [goal, setGoal] = useState('');
   const [assertionKind, setAssertionKind] = useState<AssertionKind>('visible_text');
   const [assertionValue, setAssertionValue] = useState('');
@@ -44,7 +44,7 @@ function App() {
 
   useEffect(() => {
     Promise.all([api<Health>('/api/health'), api<{ audits: AuditSummary[] }>('/api/audits')])
-      .then(([nextHealth, nextHistory]) => { setHealth(nextHealth); setHistory(nextHistory.audits); })
+      .then(([nextHealth, nextHistory]) => { setHealth(nextHealth); setHistory(nextHistory.audits); setUrl(current => current || nextHealth.demoUrl || DEMO_URL); })
       .catch(e => setError(e.message));
   }, []);
 
@@ -139,7 +139,7 @@ function App() {
           <div className="url-row"><span className="url-icon">↗</span><input value={url} onChange={e => setUrl(e.target.value)} aria-label="Website URL" placeholder="https://your-product.com" onKeyDown={e => { if (e.key === 'Enter') void startAudit(); }} /><button className="primary" onClick={() => void startAudit()} disabled={!url.trim() || loading}>{loading ? 'Inspecting…' : 'Run audit  →'}</button></div>
           <div className="card-foot"><span>⌁ Bounded crawl · up to 4 pages</span><span>◈ No login or state changes</span><button className="text-button" onClick={() => setShowAdvanced(!showAdvanced)}>{showAdvanced ? 'Hide options' : 'Advanced options'}</button></div>
           {showAdvanced && <div className="advanced advanced-form">
-            <label>Demo shortcut <button className="link-button" onClick={() => setUrl(DEMO_URL)}>Use controlled storefront</button></label>
+            <label>Demo shortcut <button className="link-button" onClick={() => setUrl(health?.demoUrl || DEMO_URL)}>Use controlled storefront</button></label>
             <label>Task goal<input value={goal} onChange={e => setGoal(e.target.value)} placeholder="e.g. Open the pricing page" /></label>
             <label>Success check<select value={assertionKind} onChange={e => setAssertionKind(e.target.value as AssertionKind)}><option value="visible_text">Visible text</option><option value="url_contains">URL contains</option></select><input value={assertionValue} onChange={e => setAssertionValue(e.target.value)} placeholder="e.g. Enterprise pricing" /></label>
             <label>Compare with<select value={compareWith} onChange={e => setCompareWith(e.target.value)}><option value="">No comparison</option>{history.map(item => <option key={item.id} value={item.id}>{item.domain} · {item.findingCount} findings · {new Date(item.createdAt).toLocaleString()}</option>)}</select></label>
@@ -183,6 +183,7 @@ function FindingCard({ finding, audit }: { finding: Finding; audit: Audit }) { r
 function RunStatus({ run }: { run: TaskRun }) { const done = run.status === 'complete'; const offline = run.model === 'openpath-demo-simulator'; return <div className={`run-status ${run.outcome === 'completed' ? 'run-good' : done ? 'run-bad' : ''}`}><div><b>{done ? run.outcome : 'Running task trial…'}</b><span>{done ? run.explanation : `${run.steps.length} browser steps recorded`}</span><small>{offline ? 'Controlled demo simulator · no NVIDIA inference' : `${run.model} · ${run.profile} · ${run.maxSteps} steps / ${Math.round(run.maxDurationMs / 1000)}s budget`}</small></div>{done && <div className="assertions">{run.checks.map(c => <span key={c.description}>{c.passed ? '✓' : '×'} {c.description}</span>)}{run.trace && <a href={run.trace}>Open trace</a>}</div>}<details className="run-steps"><summary>{run.steps.length} recorded browser steps</summary>{run.steps.map(step => <article key={step.index}><b>{step.index}. {step.action}</b><span>{step.target || step.url} · {step.result}</span>{step.screenshot && <img src={step.screenshot} alt={`Step ${step.index}`} />}</article>)}</details></div>; }
 
 createRoot(document.getElementById('root')!).render(<App />);
+
 
 
 

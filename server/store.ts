@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile, rename, readdir } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, rename, readdir, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { dataDir } from './config.js';
@@ -12,15 +12,31 @@ export function artifactDir(id: string) {
   return path.join(dataDir(), 'artifacts', id);
 }
 
+async function renameWithRetry(source: string, target: string) {
+  // Windows scanners and antivirus tools can briefly hold either path after
+  // the write completes. Keep the atomic replace, but tolerate that short
+  // external lock instead of turning a valid browser run into an inconclusive
+  // persistence failure.
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try { await rename(source, target); return; }
+    catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (!['EPERM', 'EACCES', 'EBUSY', 'ENOTEMPTY'].includes(code || '') || attempt === 5) throw error;
+      await new Promise(resolve => setTimeout(resolve, 20 * (attempt + 1)));
+    }
+  }
+}
+
 async function save(kind: string, id: string, value: unknown) {
   if (!validId(id)) throw new Error('Invalid identifier.');
   const filename = path.join(dataDir(), kind, `${id}.json`);
   const contents = JSON.stringify(value, null, 2);
   const work = (writes.get(filename) || Promise.resolve()).catch(() => {}).then(async () => {
     await mkdir(path.dirname(filename), { recursive: true });
-    const temp = `${filename}.tmp`;
+    const temp = `${filename}.${randomUUID()}.tmp`;
     await writeFile(temp, contents, 'utf8');
-    await rename(temp, filename);
+    try { await renameWithRetry(temp, filename); }
+    finally { await unlink(temp).catch(() => {}); }
   });
   writes.set(filename, work);
   await work;
