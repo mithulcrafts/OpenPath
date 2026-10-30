@@ -32,9 +32,9 @@ Built for the Nebius × NVIDIA Global AI Hackathon. NVIDIA Nemotron on Nebius To
 - [Mithul and Rohinth's task assignments](docs/TEAM_TASKS.md)
 - [Frontend/backend API contract](docs/API_CONTRACT.md)
 - [Backend setup, verification and deployment runbook](docs/BACKEND_RUNBOOK.md)
-- [Integration status and remaining frontend handoff](docs/INTEGRATION_STATUS.md)
+- [Integration status and release checklist](docs/INTEGRATION_STATUS.md)
 
-The backend workstream is on `mithul/backend`, with tested milestones integrated into `main`. Rohinth's frontend, storefront and scope/trial improvements are integrated alongside the API, shared types, audit checks, evidence storage, fix export and bounded browser runner. The full production build, 26 unit/API/model-protocol tests and eight real-Chromium integration tests passed on 30 October 2026. Offline browser checks use declared scripted decisions; live NVIDIA calls still require activated Nebius access, a configured key and verification. Actual SDK calls record model/provider metadata, latency and reported tokens. Run `npm run verify:live` after configuring access to capture genuine connection, review and paired-trial results. Remaining frontend integration gaps are recorded in the integration handoff. Deployment is not yet verified. Keep the hosted deployment available through judging once a public endpoint is selected.
+The backend workstream is on `mithul/backend`, with tested milestones integrated into `main`. Rohinth's frontend, storefront and scope/trial improvements are integrated alongside the API, shared types, audit checks, evidence storage, fix export and bounded browser runner. The full production build, 26 unit/API/model-protocol tests and eight real-Chromium integration tests passed on 30 October 2026. Offline browser checks use declared scripted decisions; live NVIDIA calls require activated Nebius access, a configured key and verification. Actual SDK calls record model/provider metadata, latency and reported tokens. Run `npm run verify:live` after configuring access to capture genuine connection, review and paired-trial results. Deployment and live NVIDIA verification still need to be completed on the selected host. Keep the hosted deployment available through judging.
 
 ## Backend setup
 
@@ -66,3 +66,5 @@ npm run test:browser
 - **Rohinth:** frontend, report experience, demo-site presentation, responsive design and visual QA.
 
 Use separate branches and the ownership rules in the task document. Never commit API keys, `.env` files, recorded private website content or unrelated research documents.
+
+
