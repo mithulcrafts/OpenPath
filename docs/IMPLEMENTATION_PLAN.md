@@ -60,7 +60,7 @@ Agents have different capabilities. A JavaScript-heavy page may work for a brows
 
 Use one TypeScript application:
 
-- **React + Vite + Tailwind** for the interface.
+- **React + Vite + CSS** for the interface. The delivered version uses the team's existing stylesheet rather than adding Tailwind.
 - **Express** in a persistent Node process for HTTP endpoints and background jobs.
 - **Playwright Chromium** for rendering, observations, screenshots and browser actions.
 - **OpenAI JavaScript SDK** configured for Nebius Token Factory.

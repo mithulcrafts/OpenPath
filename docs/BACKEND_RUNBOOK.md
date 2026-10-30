@@ -7,7 +7,7 @@
 3. Run `npm run browser:install`. Chromium is stored in the project-local `.cache/ms-playwright` directory unless `PLAYWRIGHT_BROWSERS_PATH` overrides it.
 4. Run `npm run dev` and read `http://127.0.0.1:4173/api/health`.
 
-Before frontend integration, the root URL returns backend status. The service will automatically mount Rohinth's frontend during development when `src/main.tsx` exists at startup. Restart after adding that entry point. Production serves `dist/client` when present.
+The root URL serves the integrated React interface. Development uses Vite middleware; production serves the compiled `dist/client` output after `npm run build`.
 
 ## Configure NVIDIA inference
 
@@ -37,6 +37,7 @@ Browser tests use temporary artifact storage. The production entry point never m
 ```bash
 npm run build
 npm run verify:offline
+npm run test:e2e
 # Optional: also exercise public DNS, HTTP and browser egress.
 npm run verify:offline -- --public-url https://example.com
 ```
@@ -44,6 +45,8 @@ npm run verify:offline -- --public-url https://example.com
 The verifier launches the compiled server on an isolated port, with its own installation token and report directory. It sets `OPENPATH_AI_ENABLED=false`, so an existing key cannot trigger inference. It checks the server login, protected APIs, private-address rejection, localhost demo normalization, both audits, real screenshots, scripted cart outcomes, trace downloads, Markdown exports, comparisons, and persistence across a graceful restart.
 
 Results and controlled-demo evidence remain under the ignored `data/verification/offline-*/` folder. Both scripted storefront tasks may pass; the report distinguishes a corrected static check from unchanged task success. The verifier leaves the normal development server and its data alone.
+
+`npm run test:e2e` runs five real-browser UI workflows against a separate AI-disabled server on port 4175. It checks both comparisons, exports, reload recovery, duplicate-submit protection, responsive layout, focus, budget pause, custom assertions and error/session recovery. Set `OPENPATH_UI_TEST_PORT` if that port is already in use. Screenshots and failures are saved under the ignored `test-results/` folder; the HTML report is in `playwright-report/`.
 
 For an explicitly offline installation, set `OPENPATH_AI_ENABLED=false`. Restore it to `true` before live model verification. `OPENPATH_DEMO_MODE` separately controls the scripted storefront fallback.
 

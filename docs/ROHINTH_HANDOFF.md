@@ -1,5 +1,7 @@
 # Rohinth: remaining frontend integration
 
+**Status: completed in the integrated application on 30 October 2026.** Mithul requested a final review and takeover of unfinished items after Rohinth's latest push. Rohinth supplied the initial history, category filter, evidence details, timeline and storefront labels. Mithul completed URL/reload restoration, real comparison API integration, saved/paired attempts, grouped checks, remaining filters, inference attribution, spending controls and five automated UI workflows. No additional implementation work is currently assigned to Rohinth. The original assignment below remains for traceability; current ownership is in `TEAM_TASKS.md`.
+
 Assigned by Mithul on 30 October 2026 after reviewing the latest pushed UI (`99716f5`) and current `main`. These complete R2/R4/R5 in `TEAM_TASKS.md`; they are not additional product scope. Mithul is handling live inference, spending controls and backend validation. Keep ownership of `src/**`, `demo-site/**` and UI tests.
 
 ## Priority 1: show the full before/after story

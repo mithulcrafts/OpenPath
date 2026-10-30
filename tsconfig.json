@@ -6,5 +6,5 @@
     "resolveJsonModule": true, "isolatedModules": true, "noEmit": true,
     "types": ["node", "vite/client"]
   },
-  "include": ["src", "server", "shared", "test", "vite.config.ts", "playwright.config.ts"]
+  "include": ["src", "server", "shared", "test", "tests/ui", "vite.config.ts", "playwright.config.ts"]
 }

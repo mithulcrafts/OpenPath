@@ -35,7 +35,11 @@ Built for the Nebius × NVIDIA Global AI Hackathon. NVIDIA Nemotron on Nebius To
 - [Integration status and release checklist](docs/INTEGRATION_STATUS.md)
 - [Three-minute demo script](docs/DEMO_SCRIPT.md)
 
-The backend workstream is on `mithul/backend`, with tested milestones integrated into `main`. Rohinth's frontend, storefront and scope/trial improvements are integrated alongside the audit engine, evidence storage, fix export and bounded browser runner. The full production build, 44 unit/API/model-protocol/budget tests and nine real-Chromium tests pass. `npm run verify:offline` checks the complete production flow with AI explicitly disabled, including login, both storefront audits/trials, comparisons, downloads and restart persistence. Live NVIDIA calls require activated Nebius access and a key; `npm run verify:live` captures genuine connection, review and paired-trial results. Live NVIDIA verification passed on 30 October; see [measured results and spending controls](docs/LIVE_VERIFICATION.md). The frontend integration is complete. Public deployment and the final video/submission links remain external release actions. Keep the eventual hosted deployment available through judging.
+The integrated application is on `main` and `mithul/backend`. Rohinth delivered the frontend foundation and storefront; Mithul completed the backend and final UI integration. The production build, 44 unit/API/model-protocol/budget tests, nine Chromium integration tests and five UI workflows pass. `npm run verify:offline` additionally checks the complete production flow and restart persistence with AI disabled.
+
+History restores saved reports without paid work. Audit, attempt and tab selections survive reload. Before/after comparisons use recorded server results; saved attempts, paired trials, grouped checks, finding filters, evidence, screenshots and export are available. A visible spending guard caps this installation at USD 1 using persistent conservative reservations; it does not control other applications using the same Nebius account.
+
+Live NVIDIA verification passed on 30 October; see [measured results and spending controls](docs/LIVE_VERIFICATION.md). Public deployment and final video/submission links remain external release actions. Keep the eventual hosted deployment available through judging.
 
 ## Backend setup
 
@@ -58,13 +62,14 @@ npm test
 npm run build:server
 npm run test:browser
 npm run verify:offline
+npm run test:e2e
 ```
 
 `npm run build` builds the combined frontend and backend; run it before production verification. Never commit `.env`. Set a strong `APP_ACCESS_TOKEN` before binding publicly; the server presents a working installation-login screen. For an HTTPS reverse proxy, configure its exact trusted addresses in `TRUST_PROXY`. See the runbook for hosting and offline-mode settings.
 
 ## Collaboration
 
-The `Verify OpenPath` GitHub Actions workflow runs the production build, backend tests, Chromium tests and isolated offline verification for `main` pushes and pull requests. It needs no model key or credits and saves controlled-demo evidence for three days. Check the workflow result before treating Linux verification as complete.
+The `Verify OpenPath` GitHub Actions workflow runs the production build, backend tests, Chromium integration/UI tests and isolated offline verification for `main` pushes and pull requests. It needs no model key or credits and saves controlled-demo evidence for three days. Check the workflow result before treating Linux verification as complete.
 
 - **Mithul:** backend, audit engine, NVIDIA/Nebius integration, browser runner, independent verification and deployment infrastructure.
 - **Rohinth:** frontend, report experience, demo-site presentation, responsive design and visual QA.

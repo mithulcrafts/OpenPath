@@ -13,11 +13,11 @@
 | UI tests and visual QA | Rohinth | `tests/ui/**` |
 | Demo story and submission | Both | Coordinate before editing the same document |
 
-The assistant working with Mithul should implement Mithul's tasks. Rohinth can work independently from the API contract. Neither workstream should overwrite the other's files.
+The original split is recorded above. On 30 October, Mithul requested that the assistant integrate Rohinth's latest commits and finish any remaining work, including frontend integration and UI tests. Those gaps are now completed on Mithul's workstream while preserving the storefront and existing design. No further implementation tasks are assigned to Rohinth.
 
 ## Mithul: implementation checklist
 
-Status on 30 October 2026: Rohinth's published UI/demo milestones and remaining frontend checklist items are integrated. The full build, 44 unit/API/model-protocol/budget tests and nine Chromium tests pass. Live public deployment and final video/submission links remain external release steps.
+Status on 30 October 2026: Rohinth's published UI/demo milestones are integrated, and Mithul completed the remaining frontend integration. The full build, 44 unit/API/model-protocol/budget tests, nine Chromium integration tests and five UI workflows pass. Public deployment and final video/submission links remain external release steps.
 
 ### M1. Backend foundation
 
@@ -60,12 +60,13 @@ Status on 30 October 2026: Rohinth's published UI/demo milestones and remaining 
 - [x] Validate offline happy paths, failures, containment, comparisons and exports.
 - [x] Build and verify the combined application in local production mode.
 - [ ] Deploy and verify the combined application on the chosen public host.
-- [ ] Record live NVIDIA proof and verify submission links.
-- [ ] Push the release milestone.
+- [x] Capture live NVIDIA inference proof and document measured results.
+- [ ] Record the final video and verify public submission links.
+- [x] Complete the tested local implementation milestone.
 
 ## Rohinth: implementation checklist
 
-Review on 30 October: the published frontend now includes report history, category filters, evidence details, comparisons, custom task assertions, trial step timelines and explicit demo-variant labels. The remaining external submission work is live video recording and public deployment.
+Review on 30 October: Rohinth's published frontend included basic report history, category filters, evidence details, trial step timelines and explicit demo-variant labels. Mithul completed URL restoration, server comparisons, saved and paired trials, remaining filters, paid-action controls and automated UI verification. The checklist below describes the combined result, not work attributed solely to Rohinth. Remaining submission work is video recording and public deployment.
 
 ### R1. Interface foundation
 

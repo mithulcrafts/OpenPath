@@ -32,6 +32,7 @@ jobs:
       - run: npm test
       - run: npm run test:browser
       - run: npm run verify:offline
+      - run: npm run test:e2e
       - name: Preserve controlled-demo verification evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -43,3 +44,5 @@ jobs:
             data/verification/offline-*/report.json
             data/verification/offline-*/*.png
             data/verification/offline-*/*-fix-kit.md
+            test-results/**/*.png
+            test-results/**/*.zip

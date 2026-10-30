@@ -17,12 +17,16 @@ Tested milestones are integrated on `main` and `mithul/backend`. Use the latest 
 - Server-owned installation login works in Chromium, including invalid tokens, HTTP-only sessions and reloads. HTTPS proxy trust is explicit.
 - Audit and task comparison APIs return actual before/after checks, evidence and outcomes without treating missing coverage as a fix.
 - Visible localhost/hosted demo URLs normalize to the controlled server sandbox.
-- `npm run typecheck`, `npm run build`, 44 unit/API/model-protocol/budget tests and nine real-Chromium integration tests pass.
+- `npm run typecheck`, `npm run build`, 44 unit/API/model-protocol/budget tests, nine real-Chromium integration tests and five browser UI workflows pass.
 - The isolated offline production verifier passes through both audits and trials, image/trace/export downloads, comparisons, a public-site audit and restart persistence. No AI provider is called.
 
 ## Frontend integration complete
 
-The UI consumes the mode, inference, comparison and evidence APIs. It exposes grouped check states, agent profiles, audit history, evidence details, custom assertions, before/after comparisons and the browser step timeline.
+Rohinth delivered the interface, controlled storefront, basic history/filter/evidence views, trial timeline and Windows persistence retry. Mithul completed the remaining integration after reviewing those commits, as requested.
+
+The final interface restores the selected audit, attempt and report tab from the URL. History is available from the landing screen. Comparisons use the actual server endpoints, with matching-scope checks and unchanged/unverified outcomes preserved. Saved attempts, paired trials, category/severity/profile filters, grouped checks and public browsing assertions are available. The spending guard is visible before paid work; duplicate submissions remain disabled while the accepted attempt loads or runs. Successful inference records determine provider attribution.
+
+`npm run test:e2e` uses an isolated production server with AI disabled. It covers login, unsafe-target rejection, the complete two-audit/two-trial flow, evidence, Markdown download, screenshots, trace links, reload persistence, desktop/mobile layout, visible keyboard focus, the budget pause, custom assertions, missing reports and expired sessions. No paid provider calls are needed for these tests.
 
 ## External release steps
 
