@@ -65,7 +65,7 @@ Status on 30 October 2026: Rohinth's published UI/demo milestones are integrated
 
 ## Rohinth: implementation checklist
 
-Review on 30 October: the published foundation and demo work, but the report history, comparisons, grouped checks and step timeline are not implemented yet. See `ROHINTH_HANDOFF.md` for the prioritized remaining assignment. These finish existing scope rather than adding new features. Do not mark UI work complete based on backend endpoints alone.
+Review on 30 October: the published frontend now includes report history, category filters, evidence details, comparisons, custom task assertions, trial step timelines and explicit demo-variant labels. The remaining external submission work is live video recording and public deployment.
 
 ### R1. Interface foundation
 
@@ -118,3 +118,4 @@ Review on 30 October: the published foundation and demo work, but the report his
 6. Merge reviewed, working milestones into `main`; resolve conflicts deliberately.
 
 Do not wait until the final hour to integrate. Complete the first real URL-to-report path before expanding task coverage.
+

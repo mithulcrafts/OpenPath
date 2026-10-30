@@ -33,6 +33,7 @@ Built for the Nebius × NVIDIA Global AI Hackathon. NVIDIA Nemotron on Nebius To
 - [Frontend/backend API contract](docs/API_CONTRACT.md)
 - [Backend setup, verification and deployment runbook](docs/BACKEND_RUNBOOK.md)
 - [Integration status and release checklist](docs/INTEGRATION_STATUS.md)
+- [Three-minute demo script](docs/DEMO_SCRIPT.md)
 
 The backend workstream is on `mithul/backend`, with tested milestones integrated into `main`. Rohinth's frontend, storefront and scope/trial improvements are integrated alongside the audit engine, evidence storage, fix export and bounded browser runner. The full production build, 44 unit/API/model-protocol/budget tests and nine real-Chromium tests pass. `npm run verify:offline` checks the complete production flow with AI explicitly disabled, including login, both storefront audits/trials, comparisons, downloads and restart persistence. Live NVIDIA calls require activated Nebius access and a key; `npm run verify:live` captures genuine connection, review and paired-trial results. Live NVIDIA verification passed on 30 October; see [measured results and spending controls](docs/LIVE_VERIFICATION.md). Remaining UI integration belongs to Rohinth; public deployment is deferred while the team completes local verification. Keep the eventual hosted deployment available through judging.
 
@@ -69,5 +70,6 @@ The `Verify OpenPath` GitHub Actions workflow runs the production build, backend
 - **Rohinth:** frontend, report experience, demo-site presentation, responsive design and visual QA.
 
 Use separate branches and the ownership rules in the task document. Never commit API keys, `.env` files, recorded private website content or unrelated research documents.
+
 
 
