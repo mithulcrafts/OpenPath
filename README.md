@@ -34,7 +34,7 @@ Built for the Nebius × NVIDIA Global AI Hackathon. NVIDIA Nemotron on Nebius To
 - [Backend setup, verification and deployment runbook](docs/BACKEND_RUNBOOK.md)
 - [Integration status and remaining frontend handoff](docs/INTEGRATION_STATUS.md)
 
-The backend workstream is on `mithul/backend`, with tested milestones integrated into `main`. Rohinth's initial frontend and storefront are integrated. The full production build, 17 unit/API tests and seven real-Chromium integration tests passed on 30 October 2026. Offline browser checks use declared scripted decisions; live NVIDIA calls still require activated Nebius access, a configured key and verification. Remaining frontend integration gaps are recorded in the integration handoff. Deployment is not yet verified.
+The backend workstream is on `mithul/backend`, with tested milestones integrated into `main`. Rohinth's initial frontend and storefront are integrated alongside the API, shared types, audit checks, evidence storage, fix export and bounded browser runner. The full production build, 17 unit/API tests and seven real-Chromium integration tests passed on 30 October 2026. Offline browser checks use declared scripted decisions; live NVIDIA calls still require activated Nebius access, a configured key and verification. Remaining frontend integration gaps are recorded in the integration handoff. Deployment is not yet verified. Keep the hosted deployment available through judging once a public endpoint is selected.
 
 ## Backend setup
 
